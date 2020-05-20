@@ -1,6 +1,3 @@
-import sqlalchemy as sa
-
-import pyodbc
 from urllib import parse
 from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, create_engine, between
 from sqlalchemy.orm import sessionmaker
