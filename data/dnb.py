@@ -37,7 +37,7 @@ class TargetHandler:
         conn_string = 'Driver={ODBC Driver 17 for SQL Server}' + conn_string
         params = parse.quote_plus(conn_string) 
         db_uri = "mssql+pyodbc:///?odbc_connect=%s" % params
-        self.engine = sa.create_engine(db_uri)
+        self.engine = create_engine(db_uri)
         self.Session = sessionmaker()
         self.Session.configure(bind=self.engine)
         self.session = self.Session()
@@ -50,7 +50,7 @@ class TargetHandler:
         return a 
 
     def count(self):
-        return 100000
+        return self.session.query(TargetPayment.id).count()
     
     def __repr__(self):
         return "<Database handler>"
@@ -61,3 +61,4 @@ if __name__ == "__main__":
     test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
     a_test = test.get_range(1000,10000)
     print(a_test)
+    print(test.count())
