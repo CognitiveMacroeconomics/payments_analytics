@@ -2,7 +2,7 @@ import sqlalchemy as sa
 
 import pyodbc
 from urllib import parse
-from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, create_engine
+from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, create_engine, between
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -45,11 +45,11 @@ class TargetHandler:
         self.Session.configure(bind=self.engine)
         self.session = self.Session()
 
-    def test_function(self):
+    def get_range(self, start_id, end_id):
         a = self.session \
             .query(TargetPayment) \
-            .filter_by(id=1) \
-            .first() 
+            .filter(TargetPayment.id.between(start_id,end_id)) \
+            .all() 
         return a 
 
     def count(self):
@@ -62,5 +62,5 @@ class TargetHandler:
 
 if __name__ == "__main__":
     test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
-    a_test = test.test_function()
+    a_test = test.get_range(1000,10000)
     print(a_test)
