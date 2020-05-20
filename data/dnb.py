@@ -38,13 +38,13 @@ class TargetHandler:
         conn_string = r';Server=tcp:{}, 1433;Database={};Uid={};Pwd={};Encrypt=no;TrustServerCertificate=no;Connection Timeout=30;'
         conn_string = conn_string.format(server_location, database_name, user, password)
         conn_string = 'Driver={ODBC Driver 17 for SQL Server}' + conn_string
-        print(conn_string)
         params = parse.quote_plus(conn_string) 
         db_uri = "mssql+pyodbc:///?odbc_connect=%s" % params
         self.engine = sa.create_engine(db_uri)
-        Session = sessionmaker()
-        Session.configure(bind=self.engine)
+        self.Session = sessionmaker()
+        self.Session.configure(bind=self.engine)
         self.session = Session()
+
     def test_function(self):
         a = self.session \
             .query(TargetPayment) \
@@ -64,4 +64,3 @@ if __name__ == "__main__":
     test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
     a_test = test.test_function()
     print(a_test)
-    print("bs")
