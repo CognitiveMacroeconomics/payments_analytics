@@ -34,8 +34,12 @@ class TargetHandler:
     Class to handle all connections and calls to the database.
     This might prove to be overkill, in which case it can be disregarded.
     """
-    def __init__(self, db_uri, user, password, table_name, db_type="mssql"):
-        params = parse.quote_plus((r'Driver={ODBC Driver 17 for SQL Server};Server=tcp:localhost, 1433;Database=tempdb;Uid=sa;Pwd=123456QWERD!;Encrypt=no;TrustServerCertificate=no;Connection Timeout=30;')) 
+    def __init__(self, server_location, database_name, user, password):
+        conn_string = r';Server=tcp:{}, 1433;Database={};Uid={};Pwd={};Encrypt=no;TrustServerCertificate=no;Connection Timeout=30;'
+        conn_string = conn_string.format(server_location, database_name, user, password)
+        conn_string = 'Driver={ODBC Driver 17 for SQL Server}' + conn_string
+        print(conn_string)
+        params = parse.quote_plus(conn_string) 
         db_uri = "mssql+pyodbc:///?odbc_connect=%s" % params
         self.engine = sa.create_engine(db_uri)
         Session = sessionmaker()
@@ -57,7 +61,7 @@ class TargetHandler:
 
 
 if __name__ == "__main__":
-    test = TargetHandler("bs","bs","bs","bs","bs" )
+    test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
     a_test = test.test_function()
     print(a_test)
     print("bs")
