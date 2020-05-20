@@ -43,7 +43,7 @@ class TargetHandler:
         self.engine = sa.create_engine(db_uri)
         self.Session = sessionmaker()
         self.Session.configure(bind=self.engine)
-        self.session = Session()
+        self.session = self.Session()
 
     def test_function(self):
         a = self.session \
