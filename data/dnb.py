@@ -2,7 +2,7 @@ from urllib import parse
 from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, create_engine, between
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
+import numpy as np
 import urllib
 
 Base = declarative_base()
@@ -26,6 +26,15 @@ class  TargetPayment(Base):
         repr_str = "<Payment(data={}, time={}, value={}>".format(self.date, self.time, self.value)
         return repr_str
 
+    def encode(self, cat):
+        mapping = {"f":0,"g":1}
+        a = np.zeros(len(mapping))
+        a[mapping[cat]] = 1
+        return a 
+
+    def to_vector(self):
+        return np.array([self.date.timestamp(), self.time, self.sender, self.receiver, self.value, self.encode(self.payment_type)])
+
 class TargetHandler:
     """
     Class to handle all connections and calls to the database.
@@ -42,12 +51,12 @@ class TargetHandler:
         self.Session.configure(bind=self.engine)
         self.session = self.Session()
 
-    def get_range(self, start_id, end_id):
+    def get_all(self, query_params = ('f','g')):
         a = self.session \
             .query(TargetPayment) \
-            .filter(TargetPayment.id.between(start_id,end_id)) \
-            .all() 
-        return a 
+            .filter(TargetPayment.payment_type.in_(query_params)) \
+            .all()
+        return np.array([x.to_vector() for x in a])
 
     def count(self):
         return self.session.query(TargetPayment.id).count()
@@ -59,6 +68,7 @@ class TargetHandler:
 
 if __name__ == "__main__":
     test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
-    a_test = test.get_range(1000,10000)
-    print(a_test)
+    a_test = test.get_all(1000,10000)
+    print(a_test[0])
+    print(a_test.shape)
     print(test.count())
