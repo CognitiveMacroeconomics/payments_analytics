@@ -12,10 +12,10 @@ class RTGSSequence(Sequence):
         to generate several scenarios with the existing data.
 
     """
-    def __init__(self,db_handler, batch_size, scenario=False):
+    def __init__(self,db_handler, batch_size, window_size, scenario=False):
         self.batch_size = batch_size
         self.scenario = scenario
-        self.x = db_handler.count()
+        self.x_size = db_handler.count()
 
     def __len__(self):
         return math.ceil(len(self.x) / self.batch_size)
