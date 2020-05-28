@@ -33,7 +33,7 @@ class  TargetPayment(Base):
         return a 
 
     def to_vector(self):
-        return np.array([self.date.timestamp(), self.time, self.sender, self.receiver, self.value, self.encode(self.payment_type)])
+        return np.concatenate(([self.date.timestamp(), self.time, self.sender, self.receiver, self.value], self.encode(self.payment_type))).flatten()
 
 class TargetHandler:
     """

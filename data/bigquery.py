@@ -1,7 +1,6 @@
 
 
 class BigQueryHandler:
-
-    def __init(self):
     
-    
+    def get_all(self):
+        return None

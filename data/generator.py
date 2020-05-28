@@ -1,5 +1,5 @@
 from keras.utils import Sequence
-from dnb import TargetHandler
+#import TargetHandler
 import numpy as np
 import math
 
@@ -16,6 +16,7 @@ class RTGSSequence(Sequence):
         self.batch_size = batch_size
         self.scenario = scenario
         self.x = db_handler.get_all()
+        self.window_size = window_size
 
     def __len__(self):
         return math.ceil(len(self.x) / self.batch_size)
@@ -23,17 +24,12 @@ class RTGSSequence(Sequence):
     def __getitem__(self, idx):
         batch_x = self.x[idx * self.batch_size:(idx + 1) *
         self.batch_size]
+        if self.window_size == 1:
+            batch_x = [np.expand_dims(x, axis=0) for x in batch_x]
     
         return np.array([batch_x, batch_x])
 
     def __repr__(self):
         return f"<RTGS Sequence generator with settings: batch_size: {self.batch_size}, scenarios: {self.scenario}>"
-
-
-if __name__=="__main__":
-    db_handler = TargetHandler("localhost","tempdb","sa","123456QWERD!")
-    generator = RTGSSequence(db_handler, 16, 4)
-    print(generator)
-    print(generator.__getitem__(1))
     
      
