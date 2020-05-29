@@ -1,34 +1,31 @@
-class ScenarioGenerator:
-    def __repr__(self):
-        return "<Scenario handler>"
-
-
-
-
-'''
-####################################################################################
-#
-####################################################################################
+# still needed???
 import pandas as pd
 import numpy as np
 
-class Scenarios:
+class ScenarioGenerator:
+    '''
+        LVPS_df is the TARGET2 or LVTS transaction data
+        bank_in_trouble is the bank (number) that faces the liquidity problem
+        pay_type_choice is the payment type that will "face" the extra outflow (103, 202/205 or both)
+    '''
     def __init__(self, LVPS_df, bank_in_trouble, pay_type_choice):
         self.LVPS_df = LVPS_df
         self.bank_in_trouble = bank_in_trouble # problem bank
         self.pay_type_choice = pay_type_choice 
+    
+    '''        
+        this method calculates per payment type (103, 202 and combined) the average daily
+        avarege outgoing turnover per problem bank in a period defined by the user.
+    '''
 
-    # this method calculates per payment type (103, 202 and combined) the average daily
-    # avarege outgoing turnover per problem bank in a period defined by the user.
     def daily_ave_11_12(self, date_begin, date_end):
-        #####################################################################
-        # string to take data from SQL
-        # data needed: date, value, senders in trouble, pay_type_code.
-        # use date_begin and date_end
-        #####################################################################
+        # select the data from the data base from 
+        # data_begin to 
+        # data_end 
+# HOW TO DO THIS??
         
-        # below can also be done on the database directly.
-        # per payment type
+        # filter LVPS_df such that only  the relevant payment type choice (pay_type_choice)
+        #  or combination of it is kept in the dataframe 
         if (self.pay_type_choice == 103):
             temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('g')]
             temp_df = temp_df[temp_df.sender.eq(self.bank_in_trouble)]
@@ -39,44 +36,51 @@ class Scenarios:
             temp_df = self.LVPS_df
             temp_df = temp_df[temp_df.sender.eq(self.bank_in_trouble)]
 
-        # take the dataframe with only the selected transactions (1.1, 1.2 or both)
-        # calcute the average daily sum of these transactions for a given bank.
-        # groupby date: we want daily sums
-        # take sum of values of each day
-        # then take the mean of all averages. 
+        '''
+            take temp_df 
+            calcute the average daily sum of these transactions for a given bank.
+            groupby date: we want daily sums
+            take sum of values of each day
+            then take the mean of all averages. 
+        '''
         value_mean_selected_period = temp_df.groupby('date')['value'].sum().mean()
         
         return value_mean_selected_period
 
+    def __repr__(self):
+        return "<Scenario handler>"
+
+
     # this method calculates for each time (now in seconds) the extra outflow factor
     def extra_outflow_factor(self, begin_time, end_time, days_to_extra_outflow, 
                              extra_ouflow, outflow_df):
-        # an exponential outflow will be calculated such that:
-        # 1) at t=0 the outflow is as it is (no extra outflow)
-        # 2) as of the first second the outflow increases exponentially
-        # 3) at t=1 is the time passed defined by the user: now 5 days
-        # 4) all intermediate time steps have to be between 0 and 1
-        # 5) only seconds passed during opening hours will be taken into account
-        # which means the opening time of the first day of the scneario = 0
-        # the closing time is the end of day
-        # the opening time of the next day is "1 second" after the closing of the previous day
-        # in other words, days are back to back without gaps (and no weekends, public holidays)
- 
-        # the equation is:
-        # factor_increase = a*exp(alpha * beta * t)
-
+        '''
+            an exponential outflow will be calculated such that:
+            1) at t=0 the outflow is as it is (no extra outflow)
+            2) as of the first second the outflow increases exponentially
+            3) at t=1 is the time passed defined by the user: now 5 days
+            4) all intermediate time steps have to be between 0 and 1
+            5) only seconds passed during opening hours will be taken into account
+            which means the opening time of the first day of the scneario = 0
+            the closing time is the end of day
+            the opening time of the next day is "1 second" after the closing of the previous day
+            in other words, days are back to back without gaps (and no weekends, public holidays)
+   
+            the equation is:
+            factor_increase = a*exp(alpha * beta * t)
+        '''
         # ALPHA
-        # 1) set alpha, which  is the factor in the exponent (e) to steer the increase speed, 
+        # 1) set alpha, which  is the factor in the exponent (exp) to steer the increase speed, 
         # such that at t=1 (i.e. number of days defined by user) the extra has been realized
         # if alpha is 0.693 e^(alpha*0) = 1 and e^(alpha*1) = 2 
         alpha = 0.693 # ln(2)
-        # datetime library timedeltafunction to_seconds (potential other coding option)
         # define the number of seconds during opening hours only in the predefined outflow period
         # e.g. 5 days
         duration_before_extra_outflow =  days_to_extra_outflow*(end_time - begin_time) * 3600
         # make a copy (no aliasing) of transaction data frame
         temp_mutate_df = self.LVPS_df.copy()
 
+# ADD ADD ADD
         #################################################################################################################
         # All payments after 1800 hours get time stamp 1800 hours (will only be a few and a few second or minutes)
         # ADD THIS
@@ -92,9 +96,8 @@ class Scenarios:
 
         # BETA
         # beta is number of seconds passed relative to the defined duration of extra outflows
-        # e.g. 5 days. Days are continous (i.e. including time during opening hours. )
+        # e.g. 5 days. Days are continous (i.e. only including time during opening hours. )
         temp_mutate_df['beta'] = (temp_mutate_df.running_time_nr/duration_before_extra_outflow)
-
 
         # take the value from the data frame that is the number for the daily average outflow of
         # the trouble bank for a payment type. 
@@ -113,7 +116,7 @@ class Scenarios:
         
         p_map = {103:"f", 202:"g"}
        
-        # fill in alpha, beta, a and b into the equation.
+        # fill in alpha (a), beta (b) into the equation.
         # add the extra outflow of that bank to that(those) payment type(s).
         # do not forget the minus 1. 
         if (self.pay_type_choice not in p_map.keys()):
@@ -132,21 +135,41 @@ class Scenarios:
         return temp_mutate_df        
 
 
-##############################################################################
-# read in data as data frame
-dummy_data_var = pd.read_csv("dummy_data_set_var_names.txt")
+'''
+# how to connect to the data from the data base. Or what to how to feed the dataframe to the class?
+# do we need this???
+if __name__ == "__main__":
+##    test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
 
+
+# read data from database
+    #### read in data as data frame
+    ###dummy_data_var = pd.read_csv("dummy_data_set_var_names.txt")
+# keep only relevant vars
+
+
+####
+add extra method for 
+- selecting data 
+- add unique dates
+add method for running all scenarios with input: dict troubled banks, all payment types
+- run all scenarios for dictionary of problem banks and different pay types at once: for loops below in a method to call with input
+
+
+
+- selecting data
 # select only relevant variable
-dummy_data_var = dummy_data_var[['date',
-                                   'time',
-                                   'sender',
-                                   'receiver',
-                                   'value',
-                                   'pay_type']]
+    dummy_data_var = dummy_data_var[['date',
+                                    'time',
+                                    'sender',
+                                    'receiver',
+                                    'value',
+                                    'pay_type']]
 
 # add a running number for the dates starting at 0.
 # Dates have gaps for weekends and public holidays
 
+- add uniquedates
 # day integer function
 uniqueDates = pd.DataFrame(dummy_data_var['date'].unique(), columns = ["date"])
 uniqueDates['running_date_nr'] = np.arange(len(uniqueDates))
