@@ -1,5 +1,5 @@
-from models import make_gru
-from data import ScenarioGenerator, RTGSSequence
+from models import make_gru, make_rnn, make_lstm
+from data import ScenarioGenerator, TargetHandler, RTGSSequence
 
 #load local config to hide database values
 try:
@@ -7,20 +7,26 @@ try:
 except:
     import config
     
-def exp1():
+def run_rnn():
+    model = make_rnn((1,7))
+    model.compile(loss="mse", optimizer="adam", metrics=["accuracy"])
+    db_handler = TargetHandler("localhost","tempdb","sa","123456QWERD!")
+    generator = RTGSSequence(db_handler, 16, 1)
+
+    model.fit_generator(generator, epochs=10)
+
     return None
 
 def exp2():
     return None
 
 
-def run_all():
-    res1 = exp1()
-    res2 = exp2()
-    return {"exp1":res1, "exp2":res2}
+#def run_all():
+   # res1 = exp1()
+   # res2 = exp2()
+   # return {"exp1":res1, "exp2":res2}
 
 
 
 if __name__=="__main__":
-    model = make_gru((20,400))
-    print(model.summary())
+    run_rnn()
