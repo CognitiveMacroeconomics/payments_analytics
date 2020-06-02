@@ -8,6 +8,13 @@ import urllib
 Base = declarative_base()
 
 class  TargetPayment(Base):
+    """
+    Class to handle dealings with the target table in the database record wise. 
+    It specifies the right output type for each column and can return a numpy 
+    array of a given row.
+    
+    Extension of the declarative_base class.
+    """
     __tablename__ = 'target'
     id = Column(DateTime, primary_key = True)
     date = Column(DateTime)
@@ -27,12 +34,20 @@ class  TargetPayment(Base):
         return repr_str
 
     def encode(self, cat):
+        """
+        A one hot encoder that maps the cat variable to a np array of dimension (1,2).
+        This this case the following mapping is used: [ 'f' , 'g' ]
+        """
         mapping = {"f":0,"g":1}
         a = np.zeros(len(mapping))
         a[mapping[cat]] = 1
         return a 
 
     def to_vector(self):
+        """
+        Return a numpy array of the query result, where all categorical variables are 
+        one hot encoded.
+        """
         return np.concatenate(([self.date.timestamp(), self.time, self.sender, self.receiver, self.value], self.encode(self.payment_type))).flatten()
 
 class TargetHandler:
@@ -52,6 +67,13 @@ class TargetHandler:
         self.session = self.Session()
 
     def get_all(self, query_params = ('f','g')):
+        """
+        Return a numpy array of all target payments record where the payment type 
+        matches the query_params.
+        By default only the following payment types are considered:
+            f: ...
+            g: ...
+        """
         a = self.session \
             .query(TargetPayment) \
             .filter(TargetPayment.payment_type.in_(query_params)) \
@@ -59,6 +81,9 @@ class TargetHandler:
         return np.array([x.to_vector() for x in a])
 
     def count(self):
+        """
+        Count the number of records in the 'target' table. Note that this is all payments.
+        """
         return self.session.query(TargetPayment.id).count()
     
     def __repr__(self):
