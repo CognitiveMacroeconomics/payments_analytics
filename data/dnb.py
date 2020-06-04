@@ -39,6 +39,9 @@ class  TargetPayment(Base):
         """
         A one hot encoder that maps the cat variable to a np array of dimension (1,2).
         This this case the following mapping is used: [ 'f' , 'g' ]
+
+        Parameters:
+        cat (str): 'f' or 'g'
         """
         self.payment_mapping = {"f":0,"g":1}
         a = np.zeros(len(self.payment_mapping))
@@ -46,7 +49,16 @@ class  TargetPayment(Base):
         return a 
 
     def encode_banks(self, bank):
-        self.bank_mapping = {21: 0, 906: 1, 760: 2, 'other' : -1}       
+        """
+        A one hot encoder that maps the bank variable to a np array of dimension (1, #number of banks + 1).
+        The number of relevent banks can be chosen in the mapping, others are mapped to the other category,
+        which is represented by the final index of the np array.
+
+        Parameters:
+        bank (int): code for the bank as recognized by bank_mapping.
+        """
+        self.bank_mapping = {21: 0, 906: 1, 760: 2, 'other' : -1}    
+        # To do: mapping to seperate file?   
         bank_encoder = np.zeros(len(self.bank_mapping))
         if bank not in self.bank_mapping.keys():
             bank_encoder[self.bank_mapping['other']] = 1
@@ -55,12 +67,21 @@ class  TargetPayment(Base):
         return bank_encoder
 
     def encode_sender_receiver(self, sender, receiver):
+        """
+        Maps the one hot encoded sender and receiver to a sending/receiving matrix, which is then flattened to a one 
+        dimentional array.
+
+        Parameters:
+        sender (np.array): one dimensinonal array where all elements are zero and the sender index defined by bank_mapping is 1.
+        receiver (np.array): one dimensional array where all elements are zero and the receiver index defined by bank_mapping is 1.
+        """
         return (self.encode_banks(sender).reshape(len(self.bank_mapping),1) * self.encode_banks(receiver)).flatten()
 
     def to_vector(self):
         """
         Return a numpy array of the query result, where all categorical variables are 
-        one hot encoded.
+        one hot encoded. The sender and receiver bank are both returned as actual variables and as a 
+        one hot encoded combination.
         """
         return np.concatenate(([self.date.timestamp(), self.time, self.sender, self.receiver, self.value], 
                                 self.encode_payment(self.payment_type), 
@@ -68,7 +89,7 @@ class  TargetPayment(Base):
 
     def get_column_names(self):
         """
-        Return a list of column names of vector returned for to_vector
+        Return a list of column names of the vector returned by the to_vector function.
         """
         return (['date', 'time', 'sender', 'receiver', 'value'] + 
                 [key for key in self.payment_mapping.keys()] + 
@@ -90,10 +111,11 @@ class TargetHandler:
         self.Session.configure(bind=self.engine)
         self.session = self.Session()
 
-    def get_all(self, query_params = ('f','g'), date_range = False, duration = 1):
+    def get_all(self, query_params = ('f','g'), date_range = False):
         """
-        Return a numpy array of all target payments record where the payment type 
-        matches the query_params.
+        Return a pandas dataframe of all target payments records where the payment type 
+        matches the query_params. The output contains both a sender and receiver column as
+        one hot encoded combination of the two. 
         
         Parameters:
         query_params (str, str): string to indicate payments types
@@ -114,8 +136,9 @@ class TargetHandler:
 
     def get_date_range(self, query_params = ('f','g'), date_range = False):
         """
-        Return a numpy array of all target payments record where the payment type 
-        matches the query_params.
+        Return a pandas dataframe of all target payments records where the payment type 
+        matches the query_params. The output contains both a sender and receiver column as
+        one hot encoded combination of the two. 
         
         Parameters:
         query_params (str, str): string to indicate payments types
@@ -138,7 +161,8 @@ class TargetHandler:
     
     def aggregate_time(self, df, duration=1, payment_type = ['f', 'g']):
         """
-        Aggregate payments per duration
+        Aggregate tick query output of get_all or get_data_range per duration.
+        Output is a pandas dataframe with all categorial variables one hot encoded.
 
         Parameters:
         duration (int) = duration in seconds
@@ -160,7 +184,7 @@ class TargetHandler:
 
 if __name__ == "__main__":
     test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
-    a_test = test.get_all(duration = 600)
+    a_test = test.get_all()
     agg_test = test.aggregate_time(a_test, duration = 600)
     #b_test = test.get_date_range(date_range=('2010-04-21', '2010-05-03'))
     print(a_test.shape)
