@@ -111,7 +111,7 @@ class TargetHandler:
         self.Session.configure(bind=self.engine)
         self.session = self.Session()
 
-    def get_all(self, query_params = ('f','g'), date_range = False):
+    def get_all(self, query_params = ('f','g')):
         """
         Return a pandas dataframe of all target payments records where the payment type 
         matches the query_params. The output contains both a sender and receiver column as
@@ -152,12 +152,15 @@ class TargetHandler:
             return self.get_all(query_params=query_params)
 
         else:
-            a = self.session \
+            range_data = self.session \
                 .query(TargetPayment) \
                 .filter(TargetPayment.payment_type.in_(query_params)) \
                 .filter(TargetPayment.date.between(date_range[0], date_range[1])) \
                 .all()
-            return np.array([x.to_vector() for x in a])
+
+            range_data_df = pd.DataFrame(np.array([x.to_vector() for x in range_data]))
+            range_data_df.columns = range_data[0].get_column_names()
+            return range_data_df
     
     def aggregate_time(self, df, duration=1, payment_type = ['f', 'g']):
         """
@@ -184,9 +187,9 @@ class TargetHandler:
 
 if __name__ == "__main__":
     test = TargetHandler("localhost","tempdb","sa","123456QWERD!")
-    a_test = test.get_all()
-    agg_test = test.aggregate_time(a_test, duration = 600)
-    #b_test = test.get_date_range(date_range=('2010-04-21', '2010-05-03'))
+    a_test = test.get_date_range()
+    b_test = test.get_date_range(date_range=('2010-04-21', '2010-05-03'))
+    agg_test = test.aggregate_time(b_test, duration = 600)
     print(a_test.shape)
     print(a_test.head())
     print(agg_test.head())
