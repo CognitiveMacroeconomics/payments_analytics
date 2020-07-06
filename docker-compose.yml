@@ -1,0 +1,14 @@
+version: "3"
+services:
+    db:
+        image: mcr.microsoft.com/mssql/server:2017-GA-ubuntu
+        environment:
+            - SA_PASSWORD=123456QWERD!
+            - ACCEPT_EULA="Y"
+        volumes:
+            - /var/opt/mssql
+            - /data/t2/data:/var/opt/mssql/data
+            - /data/t2/log:/var/opt/mssql/log 
+            - /data/t2/secret:/var/opt/mssql/secret
+        ports:
+            - 1433:1433
