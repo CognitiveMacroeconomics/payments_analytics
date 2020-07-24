@@ -396,16 +396,3 @@ scenario_outflow_dfs = pd.DataFrame(list_extra_outflow_dfs,
 
 
 
-# potential scenarios
-# 103_no_gaps_all
-# 202_no_gaps_all
-# 103_202_no_gaps_all
-# 103_gaps_all
-# 202_gaps_all
-# 103_202_gaps_all
-# 103_no_gaps_2b
-# 202_no_gaps_2b
-# 103_202_no_gaps_2b
-# 103_gaps_2b
-# 202_gaps_2b
-# 103_202_gaps_2b
