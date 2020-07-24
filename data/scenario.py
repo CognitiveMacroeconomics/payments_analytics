@@ -67,15 +67,17 @@ class ScenarioGenerator:
 
 
     # this method calculates for each timepoint (now in seconds) the extra outflow factor
-    def extra_outflow_factor(self, begin_time, end_time, duration_of_scenario_in_days, extra_ouflow_value, dict_problem_banks, mean_outflow_df, outflow_to_all_or_a_few):
+    def extra_outflow_factor(self, begin_time, end_time, begin_date_scen, duration_of_scenario_in_days, extra_ouflow_value, dict_problem_banks, mean_outflow_df, outflow_to_all_or_a_few, cont_y_n):
         '''
             begin_time: opening of the system
             end_time: closing of the system
+            begin_date_scen: date the n-day (5) scenario starts (date loops over all possible dates in the test range (begin_date and end_date)
             duration_of_scenario_in_days: number of days the extra outflow given by the user will be realized (e.g. 5 days)
             extra_outflow_value: extra outflow reached by the end of the scenario period defined by user
             dict_problem_banks: the dictionary of all three problem banks
             mean_outflow_df: dataframe wich contains for this bank the mean daily outflow per payment type
             outflow_to_all_or_a_few: will outflow be to all participants or just to the problem banks in the dict
+            cont_y_n: continuous (no gaps) or not (gaps in outflow)
 
             an exponential outflow will be calculated such that:
             1) at t=0 the outflow is as it is (no extra outflow)
@@ -145,54 +147,117 @@ class ScenarioGenerator:
         # fill in alpha (a), beta (b) into the equation.
         # add the extra outflow of that bank to that(those) payment type(s).
         # if all payment types will be modified
-        # depending on type of scenario increase values to all other banks ....
-        if outflow_to_all_or_a_few == "ALL":
-            if (self.pay_type_choice not in p_map.keys()):
-                temp_mutate_df['value'] = np.where((temp_mutate_df.sender == self.bank_in_trouble),
-                        temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
-                        temp_mutate_df['value'])
-            # else one of the payment types will be modified.            
+        if cont_y_n == "yes": 
+            # depending on type of scenario increase values to all other banks ....
+            if outflow_to_all_or_a_few == "ALL":
+                if (self.pay_type_choice not in p_map.keys()):
+                    temp_mutate_df['value'] = np.where((temp_mutate_df.sender == self.bank_in_trouble),
+                            temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                            temp_mutate_df['value'])
+                # else one of the payment types will be modified.            
+                else:
+                    temp_mutate_df['value'] = np.where(((temp_mutate_df.pay_type == p_map[self.pay_type_choice]) &
+                                                        (temp_mutate_df.sender == self.bank_in_trouble)),
+                            temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                            temp_mutate_df['value'])   
+            # ... or just to the other two banks in the dictionary with banks in trouble.
+            # We use the comparison with each of the three banks in the dict (from and to the same bank will not occur
+            # after filtering the data set.) 
             else:
-                temp_mutate_df['value'] = np.where(((temp_mutate_df.pay_type == p_map[self.pay_type_choice]) &
-                                                    (temp_mutate_df.sender == self.bank_in_trouble)),
-                        temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
-                        temp_mutate_df['value'])   
-        # ... or just to the other two banks in the dictionary with banks in trouble.
-        # We use the comparison with each of the three banks in the dict (from and to the same bank will not occur
-        # after filtering the data set.) 
-        else:
-            if (self.pay_type_choice not in p_map.keys()):
-                # only multiply if sender is selected bank in trouble AND
-                # receiver is one of the three defined banks that can be in trouble (including selected bank). 
-                temp_mutate_df['value'] = np.where(((temp_mutate_df.sender == self.bank_in_trouble) & 
-                                                   ((temp_mutate_df.receiver == dict_problem_banks[a][0]) |
-                                                     temp_mutate_df.receiver == dict_problem_banks[b][0]) |
-                                                     temp_mutate_df.receiver == dict_problem_banks[c][0]) 
-                                                    ),
-                        temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
-                        temp_mutate_df['value'])
-            # else one of the payment types will be modified.            
+                if (self.pay_type_choice not in p_map.keys()):
+                    # only multiply if sender is selected bank in trouble AND
+                    # receiver is one of the three defined banks that can be in trouble (including selected bank). 
+                    temp_mutate_df['value'] = np.where(((temp_mutate_df.sender == self.bank_in_trouble) & 
+                                                    ((temp_mutate_df.receiver == dict_problem_banks[a][0]) |
+                                                        temp_mutate_df.receiver == dict_problem_banks[b][0]) |
+                                                        temp_mutate_df.receiver == dict_problem_banks[c][0]) 
+                                                        ),
+                            temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                            temp_mutate_df['value'])
+                # else one of the payment types will be modified.            
+                else:
+                    # ... AND additionally
+                    # payment type choice has to be the one selected by user.
+                    temp_mutate_df['value'] = np.where(((temp_mutate_df.pay_type == p_map[self.pay_type_choice]) &
+                                                        (temp_mutate_df.sender == self.bank_in_trouble) & 
+                                                    ((temp_mutate_df.receiver == dict_problem_banks[a][0]) |
+                                                        temp_mutate_df.receiver == dict_problem_banks[b][0]) |
+                                                        temp_mutate_df.receiver == dict_problem_banks[c][0]) 
+                                                        ),
+                            temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                            temp_mutate_df['value'])
+            # ele continuous outflow is "no" (meaning gaps in the extra outflows)
             else:
-                # ... AND additionally
-                # payment type choice has to be the one selected by user.
-                temp_mutate_df['value'] = np.where(((temp_mutate_df.pay_type == p_map[self.pay_type_choice]) &
-                                                    (temp_mutate_df.sender == self.bank_in_trouble) & 
-                                                   ((temp_mutate_df.receiver == dict_problem_banks[a][0]) |
-                                                     temp_mutate_df.receiver == dict_problem_banks[b][0]) |
-                                                     temp_mutate_df.receiver == dict_problem_banks[c][0]) 
-                                                    ),
-                        temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
-                        temp_mutate_df['value'])
-   
+                # depending on type of scenario increase values to all other banks ....
+                if outflow_to_all_or_a_few == "ALL":
+                    if (self.pay_type_choice not in p_map.keys()):
+                        temp_mutate_df['value'] = np.where(((temp_mutate_df.sender == self.bank_in_trouble) &
+                                                             (temp_mutate_df.time_seconds < 32400 |
+                                                              (temp_mutate_df.time_seconds >=36000 & temp_mutate_df.time_seconds < 43200) |
+                                                              (temp_mutate_df.time_seconds >=46800 & temp_mutate_df.time_seconds < 54000) |
+                                                              (temp_mutate_df.time_seconds >= 57600)
+                                                             )                                                                
+                                                            ),
+                                temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                                temp_mutate_df['value'])
+                    # else one of the payment types will be modified.            
+                    else:
+                        temp_mutate_df['value'] = np.where(((temp_mutate_df.pay_type == p_map[self.pay_type_choice]) &
+                                                            (temp_mutate_df.sender == self.bank_in_trouble)&
+                                                             (temp_mutate_df.time_seconds < 32400 |
+                                                              (temp_mutate_df.time_seconds >=36000 & temp_mutate_df.time_seconds < 43200) |
+                                                              (temp_mutate_df.time_seconds >=46800 & temp_mutate_df.time_seconds < 54000) |
+                                                              (temp_mutate_df.time_seconds >= 57600)
+                                                             )                                              
+                                                            ),
+                                temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                                temp_mutate_df['value'])   
+                # ... or just to the other two banks in the dictionary with banks in trouble.
+                # We use the comparison with each of the three banks in the dict (from and to the same bank will not occur
+                # after filtering the data set.) 
+                else:
+                    if (self.pay_type_choice not in p_map.keys()):
+                        # only multiply if sender is selected bank in trouble AND
+                        # receiver is one of the three defined banks that can be in trouble (including selected bank). 
+                        temp_mutate_df['value'] = np.where(((temp_mutate_df.sender == self.bank_in_trouble) & 
+                                                        ((temp_mutate_df.receiver == dict_problem_banks[a][0]) |
+                                                            temp_mutate_df.receiver == dict_problem_banks[b][0]) |
+                                                            temp_mutate_df.receiver == dict_problem_banks[c][0]) &
+                                                             (temp_mutate_df.time_seconds < 32400 |
+                                                              (temp_mutate_df.time_seconds >=36000 & temp_mutate_df.time_seconds < 43200) |
+                                                              (temp_mutate_df.time_seconds >=46800 & temp_mutate_df.time_seconds < 54000) |
+                                                              (temp_mutate_df.time_seconds >= 57600)
+                                                             )                                               
+                                                            ),
+                                temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                                temp_mutate_df['value'])
+                    # else one of the payment types will be modified.            
+                    else:
+                        # ... AND additionally
+                        # payment type choice has to be the one selected by user.
+                        temp_mutate_df['value'] = np.where(((temp_mutate_df.pay_type == p_map[self.pay_type_choice]) &
+                                                            (temp_mutate_df.sender == self.bank_in_trouble) & 
+                                                        ((temp_mutate_df.receiver == dict_problem_banks[a][0]) |
+                                                            temp_mutate_df.receiver == dict_problem_banks[b][0]) |
+                                                            temp_mutate_df.receiver == dict_problem_banks[c][0])  &
+                                                             (temp_mutate_df.time_seconds < 32400 |
+                                                              (temp_mutate_df.time_seconds >=36000 & temp_mutate_df.time_seconds < 43200) |
+                                                              (temp_mutate_df.time_seconds >=46800 & temp_mutate_df.time_seconds < 54000) |
+                                                              (temp_mutate_df.time_seconds >= 57600)
+                                                             )                                              
+                                                            ),
+                                temp_mutate_df['value'] * (a*(np.exp(alpha*temp_mutate_df['beta']) ) ),
+                                temp_mutate_df['value'])
+
         return temp_mutate_df        
 
 
-'''
+
 #############################################################################################
 # function makes connection to the data base and makes selection of scenario data
 # based on the input parameters 
-# Furthermore, 
-def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time):
+# Takes all transactions for the whole scenario range (3 to 6 months) 
+def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time, CA_or_NL):
     # make connection to data base for data selection: select_all
     ELLEN???
     # for now we could test it on the dummy data set. 
@@ -221,12 +286,9 @@ def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time
                     on='date')
 
     return LVPS_data_df
+#############################################################################################
 
-#############################################################################################
 '''
-'''
-#############################################################################################
-# 
 def run_all_scenarios(ymd_date_begin, ymd_date_end, int_time_begin_day, int_time_end_day, 
                         dict_of_three_trouble_banks_and_outflows, string_CA_or_NL):
     # beginning and end data of the data selection to calculate average daily ouflows per bank per paytype
@@ -271,11 +333,11 @@ dummy_data_var = pd.merge(dummy_data_var,
                  uniqueDates,
                  on='date')
 
+
+# set several values, which are needed as input for the scenarios
 # select three banks that face outflows
-# in code terms the banks are the following
 # A(BC) = 21,  B(AR) = 897, C(MC) = 984
 problem_banks = {'a': (21, 15), 'b': (897, 150), 'c': (984, 1500)}
-
 
 # type of flows that need to be adjusted to the labels in the NL and CA database
 # 1 = client only (g), 2 = interbank only (f), 3 = both (g and f)
@@ -284,13 +346,15 @@ type_of_flows = [103, 202, 103202]
 # list with possible outflows limited to three banks or to all banks
 extra_outflow_to_all_or_a_few = ["three", "all"]
 
+# continous outflow or not (gaps)
+continuous_yes_no = ["yes", "no"]
+
 # time: opening of the system
 start_of_day_time = 7
 # time: closing of the system
 end_of_day_time = 18
-# define number of days the extra outflow will be reached at daily basis
-# this parameter will be used by the exponential increase function.
-number_of_days_extra_outflow = 5
+
+# define number of days (length) of scenario
 duration_of_scenario_days = 5
 
 # beginning and end data of the data selection to calculate average daily ouflows per bank per paytype
@@ -300,10 +364,7 @@ end_date = "2014-03-31"
 # country code CA or NL
 CA_NL_choice = "NL"
 
-# create an empty list that will be filled with daily average outflows
-# per bank per payment type
-# later on this will be converted to a dataframe
-
+begin_date_scenario = "2014-03-12"
 
 ###############################################################################################
 list_daily_outflow_bank_pay_type = []
@@ -347,11 +408,13 @@ for bank in problem_banks:
 
                 tmp_2 = a.extra_outflow_factor(start_of_day_time, 
                                                end_of_day_time, 
+                                               begin_date_scenario,
                                                duration_of_scenario_days, 
                                                problem_banks[bank][1], 
                                                problem_banks,
                                                extra_outflow_to_all_or_a_few[1],
-                                               average_outflow_df
+                                               average_outflow_df,
+                                               continuous_yes_no[0]
                                               )
 
                 list_extra_outflow_dfs.append([problem_banks[bank][0], 
