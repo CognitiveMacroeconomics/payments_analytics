@@ -259,9 +259,10 @@ class ScenarioGenerator:
 # Takes all transactions for the whole scenario range (3 to 6 months) 
 def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time, CA_or_NL):
     # make connection to data base for data selection: select_all
-    ELLEN???
+    #ELLEN/TIM???
     # for now we could test it on the dummy data set. 
-    # LVPS_data_df = pd.read_csv("dummy_data_set_var_names.txt")
+    LVPS_data_df = pd.read_csv("D:/01.dummy_data/dummy_data_set_var_names.txt")
+
 
     # depening on country of analysis 
     if CA_or_NL.upper() == "NL":
@@ -287,40 +288,6 @@ def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time
 
     return LVPS_data_df
 #############################################################################################
-
-'''
-def run_all_scenarios(ymd_date_begin, ymd_date_end, int_time_begin_day, int_time_end_day, 
-                        dict_of_three_trouble_banks_and_outflows, string_CA_or_NL):
-    # beginning and end data of the data selection to calculate average daily ouflows per bank per paytype
-    begin_date = ymd_date_begin
-    end_date = ymd_date_end
-    # opening and closing time of the system
-    start_of_day_time = int_time_begin_day # 7
-    end_of_day_time = int_time_end_day # 18
-    problem_banks_outflows = dict_of_three_trouble_banks_and_outflows
-    CA_or_NL = string_CA_or_NL
-
-    # get the numpy dataframe from the function get_scenario_data
-    LVPS_df = get_scenario_data(begin_date, end_date, start_of_day_time, end_of_day_time, CA_or_NL)
-            
-    # type of flows that need to be adjustes when data is there.
-    # 1 = client only:103 (g)
-    # 2 = interbank only:202/205 (f)
-    # 3 = both:103 and 202/205 (g and f)
-    type_of_flows = [103, 202, 103202]
-
-    # define number of days the extra outflow will be reached at daily basis
-    # this parameter will be used by the exponential increase function.
-    duration_of_scenario_days = 5
-
-    # create an instance of class Scenario
-    a = Scenarios(LVPS_data_df, problem_banks_outflows, type_of_flows, CA_or_NL)
-
-    # call method: daily_ave_client_interbank to calculate the average daily payment flows 
-    # between begin_date and end_date per problem bank
-    # the pandas data frame will used to calculate additional outflows to existing outflows. 
-    average_outflow_df = a.daily_ave_client_interbank(begin_date, end_date)
-'''
 
 ########################################################################################################################
 # mainfile part: which has to rewritten to connect to the database!!.
