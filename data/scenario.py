@@ -1,4 +1,3 @@
-# still needed???
 import pandas as pd
 import numpy as np
 
@@ -9,10 +8,10 @@ class ScenarioGenerator:
         bank_in_trouble is the bank (number) that faces the liquidity problem
         pay_type_choice is the payment type that will "face" the extra outflow (103, 202/205 or both)
     '''
-    def __init__(self, LVPS_df, dict_banks_in_trouble, pay_type_choices, CA_or_NL):
+    def __init__(self, LVPS_df, bank_in_trouble, pay_type_choice, CA_or_NL):
         self.LVPS_df = LVPS_df
-        self.dict_banks_in_trouble = dict_banks_in_trouble # number problem banks plus their extra ouflow
-        self.pay_type_choices = pay_type_choices # the three possible pay_types: either 103 OR 202/205, or 103 AND 202/205
+        self.xc bank_in_trouble = bank_in_trouble # number problem bank (just one) plus their extra ouflow
+        self.pay_type_choice = pay_type_choice # one of the three possible pay_types: either 103 OR 202/205, or 103 AND 202/205
         self.CA_or_NL = CA_or_NL # can either be "CA" or "NL":upper or lower case is irrelevant. 
 
 #    def __repr__(self):
@@ -27,63 +26,48 @@ class ScenarioGenerator:
         #  or combination of it is kept in the dataframe
         # for each problem bank 
         # this differs between NL and CA
+        # ... NL
+        if self.CA_or_NL.upper() == "NL":
+            if (pay_type_choice == 103):
+                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('g')]
+                temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
+            elif (pay_type_choice == 202):
+                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('f')]
+                temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
+            else:
+                temp_df = self.LVPS_df
+                temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
 
-        # this list should only contain the vectors with the outflow_multiplication_factor for each second
-        list_daily_outflow_bank_pay_type = []
+        # ... CA
+        elif self.CA_or_NL.upper() == "CA":
+            if (pay_type_choice == 103):
+                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('103')]
+                temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
+            elif (pay_type_choice == 202):
+                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('205')]
+                temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
+            else:
+                temp_df = self.LVPS_df
+                temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
+        else:
+            print("Hey buddy, It is either Canada or Netherlands!")
 
-
-        # for the three different payment type choice ...
-        for pay_type_choice in self.pay_type_choices:
-            # ... and the three different problem banks ...
-            for bank_in_trouble in self.dict_banks_in_trouble[0]:
-                # ... NL
-                if self.CA_or_NL.upper() == "NL":
-                    if (pay_type_choice == 103):
-                        temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('g')]
-                        temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
-                    elif (pay_type_choice == 202):
-                        temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('f')]
-                        temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
-                    else:
-                        temp_df = self.LVPS_df
-                        temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
-
-                # ... CA
-                elif self.CA_or_NL.upper() == "CA":
-                    if (pay_type_choice == 103):
-                        temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('103')]
-                        temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
-                    elif (pay_type_choice == 202):
-                        temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('205')]
-                        temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
-                    else:
-                        temp_df = self.LVPS_df
-                        temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
-                else:
-                    print("Hey buddy, It is either Canada or Netherlands!")
-
-                '''
-                    take temp_df 
-                    calcute the average daily sum of these transactions for a given bank.
-                    groupby date: we want daily sums
-                    take sum of values of each day
-                    then take the mean of all averages. 
-                '''
-                value_mean_selected_period = temp_df.groupby('date')['value'].sum().mean()
-                # add new value to the list, which started empty                
-                list_daily_outflow_bank_pay_type.append([bank_in_trouble, pay_type_choice, value_mean_selected_period])
-
-        # convert the list to a dataframe for later use
-        average_outflow_df = pd.DataFrame(list_daily_outflow_bank_pay_type,
-                                                    columns = ["problem_bank",
-                                                                "payment_type",
-                                                                "mean_daily_outflow"])
+        '''
+            take temp_df 
+            calcute the average daily sum of these transactions for a given bank.
+            groupby date: we want daily sums
+            take sum of values of each day
+            then take the mean of all averages. 
+        '''
+        value_mean_selected_period = temp_df.groupby('date')['value'].sum().mean()
+        # add new value to the list, which started empty                
+        list_daily_outflow_bank_pay_type.append([bank_in_trouble, pay_type_choice, value_mean_selected_period])
 
         return average_outflow_df
 
 
     # this method calculates for each timepoint (now in seconds) the extra outflow factor
-    def extra_outflow_factor(self, begin_time, end_time, days_to_extra_outflow, extra_ouflow_value, mean_outflow_df):
+    def extra_outflow_factor(self, begin_time, end_time, duration_of_scenario_in_days, extra_ouflow_value, mean_outflow_df):
         '''
             begin_time: opening of the system
             end_time: closing of the system
@@ -113,7 +97,7 @@ class ScenarioGenerator:
 
         # define the number of seconds during opening hours only in the predefined outflow period
         # e.g. 5 days
-        duration_before_extra_outflow =  days_to_extra_outflow*(end_time - begin_time) * 3600
+        duration_of_scenario_seconds =  duration_of_scenario_in_days*(end_time - begin_time) * 3600
         
         # make a copy (no aliasing) of transaction data frame
         temp_mutate_df = self.LVPS_df.copy()
@@ -135,7 +119,7 @@ class ScenarioGenerator:
         # BETA
         # beta is number of seconds passed relative to the defined duration of extra outflows
         # e.g. 5 days. Days are continous (i.e. only including time during opening hours. )
-        temp_mutate_df['beta'] = (temp_mutate_df.running_time_nr/duration_before_extra_outflow)
+        temp_mutate_df['beta'] = (temp_mutate_df.running_time_nr/duration_of_scenario_seconds)
 
         # take the value from the data frame that is the number for the daily average outflow of
         # the trouble bank for a payment type. 
@@ -173,12 +157,12 @@ class ScenarioGenerator:
         return temp_mutate_df        
 
 
-
+'''
 #############################################################################################
 # function makes connection to the data base and makes selection of scenario data
 # based on the input parameters 
 # Furthermore, 
-def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time, CA_or_NL):
+def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time):
     # make connection to data base for data selection: select_all
     ELLEN???
     # for now we could test it on the dummy data set. 
@@ -209,8 +193,8 @@ def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time
     return LVPS_data_df
 
 #############################################################################################
-
-
+'''
+'''
 #############################################################################################
 # 
 def run_all_scenarios(ymd_date_begin, ymd_date_end, int_time_begin_day, int_time_end_day, 
@@ -235,7 +219,7 @@ def run_all_scenarios(ymd_date_begin, ymd_date_end, int_time_begin_day, int_time
 
     # define number of days the extra outflow will be reached at daily basis
     # this parameter will be used by the exponential increase function.
-    number_of_days_extra_outflow = 5
+    duration_of_scenario_days = 5
 
     # create an instance of class Scenario
     a = Scenarios(LVPS_data_df, problem_banks_outflows, type_of_flows, CA_or_NL)
@@ -244,119 +228,124 @@ def run_all_scenarios(ymd_date_begin, ymd_date_end, int_time_begin_day, int_time
     # between begin_date and end_date per problem bank
     # the pandas data frame will used to calculate additional outflows to existing outflows. 
     average_outflow_df = a.daily_ave_client_interbank(begin_date, end_date)
+'''
 
 
+########################################################################################################################
+# potential scenarios
+# 103_no_gaps_all
+# 202_no_gaps_all
+# 103_202_no_gaps_all
+# 103_gaps_all
+# 202_gaps_all
+# 103_202_gaps_all
+# 103_no_gaps_2b
+# 202_no_gaps_2b
+# 103_202_no_gaps_2b
+# 103_gaps_2b
+# 202_gaps_2b
+# 103_202_gaps_2b
 
-# pseudcode
+# mainfile part: which has to rewritten to connect to the database!!.
+# day integer function
+uniqueDates = pd.DataFrame(dummy_data_var['date'].unique(), columns = ["date"])
+uniqueDates['running_date_nr'] = np.arange(len(uniqueDates))
 
-{"A":{"cont":, "discont":{"f":, "g":, "f_g":{"all":,"2banks":}}}}
+# combine with original data set.
+dummy_data_var = pd.merge(dummy_data_var,
+                 uniqueDates,
+                 on='date')
+
+# select three banks that face outflows
+# in code terms the banks are the following
+# A(BC) = 21
+# B(AR) = 897
+# C(MC) = 984
+problem_banks = {'a': (21, 15), 'b': (897, 150), 'c': (984, 1500)}
+# define the extra ouflow of the banks
+#outflow_amount = {'a':100, 'b':400, 'c':1000}
+
+# type of flows that need to be adjusted to the labels in the NL and CA database
+# 1 = client only (g)
+# 2 = interbank only (f)
+# 3 = both (g and f)
+type_of_flows = [103, 202, 103202]
+
+# list with possible outflows limited to three banks or to all banks
+extra_outflow_to_whom = ["three", "all"]
+# time: opening of the system
+start_of_day_time = 7
+# time: closing of the system
+end_of_day_time = 18
+# define number of days the extra outflow will be reached at daily basis
+# this parameter will be used by the exponential increase function.
+number_of_days_extra_outflow = 5
+duration_of_scenario_days = 5
+
+# beginning and end data of the data selection to calculate average daily ouflows per bank per paytype
+begin_date = "2014-01-01"
+end_date = "2014-03-31"
+
+# country code CA or NL
+CA_NL_choice = "NL"
+
+# create an empty list that will be filled with daily average outflows
+# per bank per payment type
+# later on this will be converted to a dataframe
 
 
- #################################
- The code below into  extra_outflow_factor method
- the for loops need to be run there
- for each problem bank 3x
- outflow to all or a few banks (2 other): 2x
- continuous (no gap) or discontinuous (gaps): 2x   
-for different payment types. 
-leads to 36 vectors
+###############################################################################################
+list_daily_outflow_bank_pay_type = []
 
-use a dict of banks: 
-each bank is part of the dict
-add a list of vectors to each bank
-103_no_gaps_all
-202_no_gaps_all
-103_202_no_gaps_all
-103_gaps_all
-202_gaps_all
-103_202_gaps_all
-103_no_gaps_2b
-202_no_gaps_2b
-103_202_no_gaps_2b
-103_gaps_2b
-202_gaps_2b
-103_202_gaps_2b
+for bank in problem_banks:
+    for paytype in type_of_flows:
+        # create an instance
+        a = Scenarios(dummy_data_var, 
+                      problem_banks[bank][0], 
+                      paytype,
+                      CA_NL_choice)
+        # calculate the daily average outflow of a certain bank, payment type
+        # and between these two dates
+        tmp_1 = a.daily_ave_11_12(begin_date, end_date)
+        list_daily_outflow_bank_pay_type.append([problem_banks[bank][0], 
+                                                 paytype, 
+                                                 tmp_1])
 
-    # create an empty list that will be filled with modified outflows depending on sceanrio
-    list_extra_outflow_dfs = []
-    # scenario has continuous outflows or gaps 
-    # for each of the three problem banks
-    for bank in problem_banks:    
+# convert the list to a dataframe for later use
+average_outflow_df = pd.DataFrame(list_daily_outflow_bank_pay_type,
+                                                columns = ["trouble_bank",
+                                                           "payment_type",
+                                                           "mean_daily_outflow"])
+###############################################################################################
+
+# set which of the three banks you want to run your scenario
+bank_in_trouble_selected = problem_banks[0][0]
+# dito for pay type
+pay_type_selected = type_of_flows[0]
+
+list_extra_outflow_dfs = []
+
+for bank in problem_banks:    
+    if bank = bank_in_trouble_selected:
         for paytype in type_of_flows:
-            a = Scenarios(LVPS_data_df, 
-                        problem_banks[bank][0], 
-                        paytype)
+            if paytype = pay_type_selected:
+                a = Scenarios(dummy_data_var, 
+                            problem_banks[bank][0], 
+                            paytype,
+                            CA_NL_choice)
 
-            tmp_2 = a.extra_outflow_factor(start_of_day_time, 
-                                        end_of_day_time, 
-                                        number_of_days_extra_outflow, 
-                                        problem_banks[bank][1],
-                                        average_outflow_df)
+                tmp_2 = a.extra_outflow_factor(start_of_day_time, 
+                                            end_of_day_time, 
+                                            duration_of_scenario_days, 
+                                            problem_banks[bank][1], 
+                                            average_outflow_df)
 
-            list_extra_outflow_dfs.append([problem_banks[bank][0], 
-                                        paytype, 
-                                        tmp_2])
+                list_extra_outflow_dfs.append([problem_banks[bank][0], 
+                                            paytype, 
+                                            tmp_2])
 
-
-            # convert the list to a dataframe for later use
-            scenario_outflow_dfs = pd.DataFrame(list_extra_outflow_dfs,
-                                            columns = ["trouble_bank",
-                                                    "payment_type",
-                                                    "scenario_df"])
-
-
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-
-# read csv: just for testing purposes
-# read data from database
-    # read in data as data frame
-    # LVPS_data_df = pd.read_csv("dummy_data_set_var_names.txt")
-# keep only relevant vars
-
-
-# in total 108 outcomes per country (*2) and per set of five days 
-
-# user has to tell which model to run: 
-# - pure autoencoder
-# - LSTM autoencoder
-# - GRU autoencocer 
-# ... and user has to provide who will receiver extra outflow
-# - all others
-# - only 2 others (of the list of problem banks)
-
-# call function to run scenarios with problem bank dictionary 
-# This definition will be deleted, as this will be input of this function
-    ## select three banks that face outflows
-    ## in code terms the banks are the following
-    ## A(BC) = 21
-    ## B(AR) = 897
-    ## C(MC) = 984
-    ## second value in the dictionary is the extra outflow
-    # problem_banks = {'a': (21, 15), 'b': (897, 150), 'c': (984, 1500)}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# convert the list to a dataframe for later use
+scenario_outflow_dfs = pd.DataFrame(list_extra_outflow_dfs,
+                                columns = ["trouble_bank",
+                                           "payment_type",
+                                           "scenario_df"])
