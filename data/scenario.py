@@ -289,17 +289,17 @@ def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time
     return LVPS_data_df
 #############################################################################################
 
+
 ########################################################################################################################
 # mainfile part: which has to rewritten to connect to the database!!.
-# day integer function
-uniqueDates = pd.DataFrame(dummy_data_var['date'].unique(), columns = ["date"])
-uniqueDates['running_date_nr'] = np.arange(len(uniqueDates))
 
-# combine with original data set.
-dummy_data_var = pd.merge(dummy_data_var,
-                 uniqueDates,
-                 on='date')
-
+# the defined values below should be created somewhere else or read in from a txt file. 
+# what is the best way???
+# this is different between Canada and the Netherlands!
+# maybe not all values have to be defined as they are obvious
+# * type of flows
+# * extra_outflow_to_all_or_a_few
+# * continuous_yes_no
 
 # set several values, which are needed as input for the scenarios
 # select three banks that face outflows
