@@ -230,7 +230,7 @@ def run_all_scenarios(ymd_date_begin, ymd_date_end, int_time_begin_day, int_time
     average_outflow_df = a.daily_ave_client_interbank(begin_date, end_date)
 '''
 
-
+# blablabla
 ########################################################################################################################
 # potential scenarios
 # 103_no_gaps_all
