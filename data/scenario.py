@@ -480,3 +480,5 @@ run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extra_ou
 run_scenario("CA", 15, "client", "ALL", "YES")
 run_scenario("Nl", 15, "interbank", "jkdkfjkak", "ddfasf")
 
+Questions:
+line 140 and 452
