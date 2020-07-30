@@ -137,7 +137,7 @@ class ScenarioGenerator:
         # a: factor_exp 
         a = extra_ouflow_value/outflow_bank_pay_type_now
         print("a = ", a)
-ASK TIMOTHY HERE        
+
         # depending on country the numbering for the payment types is different
         if self.CA_or_NL.upper() == "NL":
             # p_map = {103:"f", 202:"g"}
@@ -449,9 +449,6 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
     # call function: calc_mean_flows_per_bank_per_pay_type, use dataframe from previous function call as input for this one
     average_outflow_df = calc_mean_flows_per_bank_per_pay_type(LVPS_data_range_df, dict_problem_banks, list_type_of_flows, country_name)
 
-!!!!!!!!!!!!!!!!!!! CEHCK for loop range !!!!!!!!!!!
-discuss with Timoth and Ellen
-    for begin_date_scenario in range (begin_date:end_date-duration_of_scenario_days):
     # call function: calc_extra_ouflow_problem_bank  
     scenario_data = calc_extra_ouflow_problem_bank(LVPS_data_range_df, 
                                                    average_outflow_df,
@@ -469,6 +466,8 @@ discuss with Timoth and Ellen
 
 
 
+####################################################################################################################
+# call run_scenario from mainfile or somewhere else. (NOT HERE)
 # call run scenario
 # first argument:
 # - CA or NL (case insensitive)
@@ -476,9 +475,8 @@ discuss with Timoth and Ellen
 # - payment type is client, interbank or both in function call. Programme assume both if it is not client or interbank
 # - to all or a few": it is either "ALL" (case insensitive) of something else
 # - continous_yes_no: it is either "YES" or "Y" (case insensitive) for yes or something else
+
+# structure of the scenario call and come examples to test later on
 run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extra_outflow_to_whom, continuous_yes_no)
 run_scenario("CA", 15, "client", "ALL", "YES")
 run_scenario("Nl", 15, "interbank", "jkdkfjkak", "ddfasf")
-
-Questions:
-line 140 and 452
