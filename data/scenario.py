@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-
 class ScenarioGenerator:
     '''
         LVPS_df is the TARGET2 or LVTS transaction data as input.         
@@ -21,10 +20,8 @@ class ScenarioGenerator:
         this method calculates per payment type (103, 202 and combined) the average daily
         avarege outgoing turnover per problem bank in a period defined by the user.
     '''
-    # CHECK and remove: date_begin and date_end seems irrelevant at this stage... 
-#    def daily_ave_client_interbank(self, date_begin, date_end):
     def daily_ave_client_interbank(self):
-        # filter LVPS_df such that only  the relevant payment type choice (pay_type_choice)
+        # filter LVPS_df such that only the relevant payment type choice (pay_type_choice)
         # or combination of it is kept in the dataframe
         # for each problem bank 
         # this differs between NL and CA
@@ -95,42 +92,55 @@ class ScenarioGenerator:
             the equation is:
             factor_increase = a*exp(alpha * beta * t)
         '''
-        # ALPHA
-        # 1) set alpha, which  is the factor in the exponent (exp) to steer the increase speed, 
-        # such that at t=1 (i.e. number of days defined by user) the extra outflow has been realized
-        # if alpha is 0.693 e^(alpha*0) = 1 and e^(alpha*1) = 2 
+        
+        '''
+            ALPHA
+            1) set alpha, which  is the factor in the exponent (exp) to steer the increase speed, 
+            such that at t=1 (i.e. number of days defined by user) the extra outflow has been realized
+            if alpha is 0.693 e^(alpha*0) = 1 and e^(alpha*1) = 2 
+        '''
         alpha = 0.693 # ln(2)
 
-        # define the number of seconds during opening hours only in the predefined outflow period
-        # e.g. 5 days
+        '''
+            define the number of seconds during opening hours only in the predefined outflow period
+            e.g. 5 days
+        '''
         duration_of_scenario_seconds =  duration_of_scenario_in_days*(end_time - begin_time) * 3600
         
         # make a copy (no aliasing) of transaction data frame
         temp_mutate_df = self.LVPS_df.copy()
 
-        # All payments after end_time (end of day selection, in TARGET2 this is 18.00 hours) get time stamp end_time. 
-        # The closing of the system in T2 is not always exactly 1800 hour, but can close seconds to 
-        # minutes later. To "combine" the business days (e.g. 5 days) to one long day it is necessary to cut off
-        # payments (just) after user defined closing time.  
+        '''
+            All payments after end_time (end of day selection, in TARGET2 this is 18.00 hours) get time stamp end_time. 
+            The closing of the system in T2 is not always exactly 1800 hour, but can close seconds to 
+            minutes later. To "combine" the business days (e.g. 5 days) to one long day it is necessary to cut off
+            payments (just) after user defined closing time.  
+        '''
         temp_mutate_df.time[temp_mutate_df.time > end_time*3600] = end_time*3600
 
-        # add time running nummer that has an increasing value over the different business days.
-        # the opening will be set to 0 and the time passed in seconds.
-        # the next business day will start number_of_business_hours*3600 seconds later than the previous business day.
-        # weekends and holidays are ignored in the time passed.
+        '''
+            add time running nummer that has an increasing value over the different business days.
+            the opening will be set to 0 and the time passed in seconds.
+            the next business day will start number_of_business_hours*3600 seconds later than the previous business day.
+            weekends and holidays are ignored in the time passed.
+        '''
         temp_mutate_df['running_time_nr'] = (temp_mutate_df.time - begin_time*3600 +
                                              temp_mutate_df.running_date_nr*((end_time -
                                                                               begin_time)*3600))
 
-        # BETA
-        # beta is number of seconds passed relative to the defined duration of extra outflows
-        # e.g. 5 days. Days are continous (i.e. only including time during opening hours. )
+        '''
+            BETA
+            beta is number of seconds passed relative to the defined duration of extra outflows
+            e.g. 5 days. Days are continous (i.e. only including time during opening hours. )
+        '''
         temp_mutate_df['beta'] = (temp_mutate_df.running_time_nr/duration_of_scenario_seconds)
 
-        # take the value from the data frame that is the number for the daily average outflow of
-        # the trouble bank for a payment type. 
-        # Also take the outflow of both (interbank and client) as we need to know the total outflow of that bank.
-        # in case both pay types are chosen: outflow_bank_pay_type_now= outflow_bank_pay_type_all
+        '''
+            take the value from the data frame that is the number for the daily average outflow of
+            the trouble bank for a payment type. 
+            Also take the outflow of both (interbank and client) as we need to know the total outflow of that bank.
+            in case both pay types are chosen: outflow_bank_pay_type_now= outflow_bank_pay_type_all
+        '''
         outflow_bank_pay_type_now = outflow_df[(outflow_df['trouble_bank'] == self.bank_in_trouble)
                             & (outflow_df['payment_type'] == self.pay_type_choice)].iat[0,2]
         
@@ -148,9 +158,11 @@ class ScenarioGenerator:
         else:
             print{"Hey guy, please select NL or CA!"}
             
-        # fill in alpha (a), beta (b) into the equation.
-        # add the extra outflow of that bank to that(those) payment type(s).
-        # if all payment types will be modified
+        '''
+            fill in alpha (a), beta (b) into the equation.
+            add the extra outflow of that bank to that(those) payment type(s).
+            if all payment types will be modified
+        '''
         if cont_y_n.upper() == "YES" or cont_y_n.upper() == "Y": 
             # depending on type of scenario increase values to all other banks ....
             if outflow_to_all_or_a_few.upper() == "ALL":
@@ -257,9 +269,11 @@ class ScenarioGenerator:
 
 
 #############################################################################################
-# function makes connection to the data base and makes selection of scenario data
-# based on the input parameters 
-# Takes all transactions for the whole scenario range (3 to 6 months) 
+'''
+ function makes connection to the data base and makes selection of scenario data
+ based on the input parameters 
+ Takes all transactions for the whole scenario range (3 to 6 months) 
+'''
 def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time, CA_or_NL):
     # make connection to data base for data selection: select_all
     # ELLEN/TIM???
@@ -370,7 +384,8 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
     - give name (number) of bank ik trouble,
     - which pay type if affected 
     - to whom goes extra outflow (all banks or only list of three problem banks)
-    - continuous otflow or with gaps
+    - continuous outflow or with gaps
+    - increase_factor is a number 
     '''
     # set several input values for Cananda and the Netherlands
     # 
@@ -432,16 +447,20 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
         if bank == problem_banks[bank][0]:
             bank_counter_verifier = bank_counter_verifier + 1
     
+    # if bank_counter_verifier is 0 the bank in trouble does not exist in dictionary
+    # stop the code. 
     if bank_counter_verifier == 0:
         print("This is not a correct bank name or number, please check the argument given to the function or the 'problem_bank' dictionary in the code")
+        break
     
     # the same for the pay_type_selected in the "type_of_flows" 
     for pay in pay_types:
         if pay == pay_types[pay]:
-            pay_tyoe_counter_verifier = pay_type_counter_verifier + 1
-            break
+            pay_type_counter_verifier = pay_type_counter_verifier + 1
 
-    if bank_counter_verifier == 0:
+    # if bank_counter_verifier is 0 the bank in trouble does not exist in dictionary
+    # stop the code. 
+    if pay_type_counter_verifier == 0:
         print("This is not a correct payment type, please check the argument given to the function or the 'pay_type' dictionary in the code")
         break:
              
