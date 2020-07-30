@@ -43,10 +43,10 @@ class ScenarioGenerator:
         # ... CA
         elif self.CA_or_NL.upper() == "CA":
             if (pay_type_choice == "client"):
-                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('103')]
+                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('MT103')]
                 temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
             elif (pay_type_choice == "interbank"):
-                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('205')]
+                temp_df = self.LVPS_df[self.LVPS_df.pay_type.eq('MT205')]
                 temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
             else:
                 temp_df = self.LVPS_df
@@ -359,9 +359,11 @@ def calc_extra_ouflow_problem_bank(LVPS_input_df, average_outflow_df, dict_probl
                                     columns = ["trouble_bank",
                                             "payment_type",
                                             "scenario_df"])
+    
+    return scenario_outflow_dfs
 
 
-def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extra_outflow_to_whom, continuous_yes_no):
+def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extra_outflow_to_whom, continuous_yes_no, increase_factor):
     '''
     input for this function
     - country (CA or NL)
@@ -392,7 +394,7 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
         # define 3 problem banks (names, numbers) and their outflows
         # for NL we selected
         # A(RBC) = 21,  B(BOM) = 897, C(CIBC) = 984
-        problem_banks = {'a': ("RBC", 15), 'b': ("BOM", 150), 'c': ("CIBC", 1500)}
+        problem_banks = {'a': ("ROYCCA", 1), 'b': ("BNDCCA", 1), 'c': ("CIBCCA", 1)}
     
         # time: opening of the system
         start_of_day_time = 8
@@ -407,7 +409,7 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
         # define 3 problem banks (names, numbers) and their outflows
         # for NL we selected
         # A(BC) = 21,  B(AR) = 897, C(MC) = 984
-        problem_banks = {'a': (21, 15), 'b': (897, 150), 'c': (984, 1500)}
+        problem_banks = {'a': (21, 1), 'b': (897, 1), 'c': (984, 1)}
     
         # time: opening of the system
         start_of_day_time = 7
@@ -449,6 +451,21 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
     # call function: calc_mean_flows_per_bank_per_pay_type, use dataframe from previous function call as input for this one
     average_outflow_df = calc_mean_flows_per_bank_per_pay_type(LVPS_data_range_df, dict_problem_banks, list_type_of_flows, country_name)
 
+
+    # use mean values of outflow calculated and stored in average_outflow_df
+    # modfify the problem bank dict values of the outflows with the increase_factor and the mean values above.
+    for bank in problem_banks
+        if country_name.upper() == "CA":
+            tmp1 = average_outflow_df.loc[(average_outflow_df['trouble_bank'] == bank) & (average_outflow_df['pay_type'] == 'both')]
+            mean_value_problem_bank = tmp1.iloc[2]
+            problem_banks[bank][1] = mean_value_problem_bank*increase_factor
+        elif country_name.upper() == "NL"
+            tmp1 = average_outflow_df.loc[(average_outflow_df['trouble_bank'] == bank) & (average_outflow_df['pay_type'] == 'both')]
+            mean_value_problem_bank = tmp1.iloc[2]
+            problem_banks[bank][1] = mean_value_problem_bank*increase_factor
+        else:
+            print("Hey buddy: That is not CA or NL eh!")    
+
     # call function: calc_extra_ouflow_problem_bank  
     scenario_data = calc_extra_ouflow_problem_bank(LVPS_data_range_df, 
                                                    average_outflow_df,
@@ -463,7 +480,7 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
                                                    extra_outflow_to_whom, 
                                                    continuous_yes_no    
 
-
+    return scenario_data
 
 
 ####################################################################################################################
@@ -475,8 +492,10 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
 # - payment type is client, interbank or both in function call. Programme assume both if it is not client or interbank
 # - to all or a few": it is either "ALL" (case insensitive) of something else
 # - continous_yes_no: it is either "YES" or "Y" (case insensitive) for yes or something else
-
+# - increase_factor: with which factor does the mean total outflow of a problem bank have to be multiplied. 
 # structure of the scenario call and come examples to test later on
-run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extra_outflow_to_whom, continuous_yes_no)
-run_scenario("CA", 15, "client", "ALL", "YES")
-run_scenario("Nl", 15, "interbank", "jkdkfjkak", "ddfasf")
+run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extra_outflow_to_whom, continuous_yes_no, increase_factor)
+run_scenario("CA", 15, "client", "ALL", "YES", 2)
+run_scenario("Nl", 15, "interbank", "jkdkfjkak", "ddfasf", 2.5)
+
+
