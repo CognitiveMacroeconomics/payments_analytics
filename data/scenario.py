@@ -50,6 +50,7 @@ class ScenarioGenerator:
                 temp_df = temp_df[temp_df.sender.eq(bank_in_trouble)]
         else:
             print("Hey buddy, It is either Canada or Netherlands!")
+            break
 
         '''
             take temp_df 
@@ -157,6 +158,7 @@ class ScenarioGenerator:
             p_map = {"client":"103", "interbank":"205"}
         else:
             print{"Hey guy, please select NL or CA!"}
+            break
             
         '''
             fill in alpha (a), beta (b) into the equation.
@@ -289,6 +291,7 @@ def get_scenario_data(ymd_date_begin, ymd_date_end, int_begin_time, int_end_time
         # Is there a selection needed for Canada?
     else:
         print("Hey friend: this is not the idea! It is either CA or NL!")
+        break
 
     # for now we could test it on the dummy data set. 
     LVPS_data_df = pd.read_csv("D:/01.dummy_data/dummy_data_set_var_names.txt")
@@ -439,6 +442,7 @@ def run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extr
     
     else:
         print("Hey my friend, It is either Canada or Netherlands!")
+        break
 
     bank_counter_verifier = 0
     pay_type_counter_verifier = 0
@@ -517,4 +521,5 @@ run_scenario(country_name, bank_in_trouble_selected, pay_type_selected, extra_ou
 run_scenario("CA", 15, "client", "ALL", "YES", 2)
 run_scenario("Nl", 15, "interbank", "jkdkfjkak", "ddfasf", 2.5)
 
-
+# a few checks are done
+# if country_name is not CA or NL the code will stop
