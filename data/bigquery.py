@@ -49,3 +49,16 @@ class BigQueryHandler:
 
 if __name__ == "__main__":
     test = BigQueryHandler('credentials.json')
+
+    # ['ATBRCA','BCANCA','BLCMCA','BNDCCA','BNPACA','BOFACA','BOFMCA','CCDQCA','CIBCCA','CUCXCA','HKBCCA','ICICCA','MCBTCA','NOSCCA','ROYCCA','SBOSCA','TDOMCA']
+    #bank_list = ['ATBRCA','BLCMCA','BNDCCA','BOFACA','BOFMCA','CIBCCA','CUCXCA'] 
+
+    bank_list = []
+    with open('bank_list_test.txt','r') as file:
+      lines = file.readlines()
+
+    for line in lines:
+        bank_list.append(line.strip('\n'))
+
+    print(bank_list)
+

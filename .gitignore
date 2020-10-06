@@ -15,3 +15,5 @@ __pycache__/
 
 # cred
 credentials.json
+bank_list.txt
+bank_list_test.txt
