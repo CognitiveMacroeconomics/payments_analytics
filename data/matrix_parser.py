@@ -3,6 +3,16 @@ import pandas as pd
 import datetime
 import time
 
+# CANADA INSTRUCTIONS #
+# To use this class use this code:
+# df = input dataframe
+# bank_list = [1,2,3,...] A list of banks in your system as indicated in the sender/receiver columns
+# parser = MatrixParser(bank_list = bank_list)
+# output_array = parser.parse(df.to_dict("records"), aggregation=True, aggregation_time = 300)
+# If using sql alchemy the df.to_dict("records") might not be needed and you can use the input way of DNB.py
+# and connect is in a similar way to the __to_vector function
+# CANADA INSTRUCTIONS #
+
 class MatrixParser:
     
     def __init__(self, payment_mapping={"f":0,"g":1}, bank_list=[21, 906, 760]):
