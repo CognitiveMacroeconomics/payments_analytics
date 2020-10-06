@@ -6,6 +6,7 @@ import pandas as pd
 import urllib
 from datetime import datetime
 
+
 Base = declarative_base()
 
 class PaymentTransaction(Base):
@@ -14,24 +15,21 @@ class PaymentTransaction(Base):
     __tablename__ = 'sample_payments'
     msg_ref_id = Column(String, primary_key = True)
     cycle_date = Column(Date)
-    #cycle_seq_num = Column(Integer)
     payment_tranche = Column(String)
     trans_time = Column(DateTime)
     acp_time = Column(DateTime)
     payment_amt = Column(Numeric)
     part_id_from = Column(String)
-    #part_brch_cd_from = Column(String)
-    #part_loc_cd_from = Column(String)
     part_id_to = Column(String)
-    #part_brch_cd_to = Column(String)
-    #part_loc_cd_to = Column(String)
-    #trans_class = Column(String)
-    #rjt_rsn_cd = Column(String)
-    #mir_date = Column(Date)
-    #mir_sess_nb = Column(Integer)
-    #mir_seq_nb = Column(Integer)
-    #status = Column(String)
     swift_msg_id = Column(String)
+
+class MatrixParser:
+
+    def __init__(self, payment_mapping={"f":0,"g":1}, bank_list=[21, 906, 760]):
+        self.payment_mapping = payment_mapping
+        #self.bank_mapping = self.__get_bank_mapping_from_list(bank_list)
+        print(self.payment_mapping)
+        print(self.bank_mapping)
 
 class BigQueryHandler:
     """
@@ -43,22 +41,25 @@ class BigQueryHandler:
         self.Session.configure(bind=self.engine)
         self.session = self.Session()
         self.result = self.session.query(PaymentTransaction).all()
-        for row in self.result:
-            print("{}\t{}\t{}\t{}".format(row.msg_ref_id,row.cycle_date,row.part_id_from,row.part_id_to))
+        
 
 
 if __name__ == "__main__":
+
     test = BigQueryHandler('credentials.json')
 
+    for row in test.result:
+            print("{}\t{}\t{}\t{}".format(row.msg_ref_id,row.cycle_date,row.part_id_from,row.part_id_to))
+
+    
+
     # ['ATBRCA','BCANCA','BLCMCA','BNDCCA','BNPACA','BOFACA','BOFMCA','CCDQCA','CIBCCA','CUCXCA','HKBCCA','ICICCA','MCBTCA','NOSCCA','ROYCCA','SBOSCA','TDOMCA']
-    #bank_list = ['ATBRCA','BLCMCA','BNDCCA','BOFACA','BOFMCA','CIBCCA','CUCXCA'] 
+    bank_list = ['ATBRCA','BLCMCA','BNDCCA','BOFACA','BOFMCA','CIBCCA','CUCXCA']
 
-    bank_list = []
-    with open('bank_list_test.txt','r') as file:
-      lines = file.readlines()
+    df = pd.DataFrame([dict(acp_time = r.acp_time, payment_amt = r.payment_amt, sender_bank = r.part_id_from,\
+        receiver_bank = r.part_id_to, payment_type = r.swift_msg_id)\
+        for r in test.result])
+    print(df.head())    
 
-    for line in lines:
-        bank_list.append(line.strip('\n'))
 
-    print(bank_list)
 
