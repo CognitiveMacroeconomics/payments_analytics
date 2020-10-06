@@ -43,3 +43,20 @@ class SplitScaleParser:
         df["NUMBER_OF_TRANSACTIONS"] = df["NUMBER_OF_TRANSACTIONS"]/50 #ugly, but hard to scale without aggregation first
 
         return df
+
+
+### DNB EXAMPLE ###
+# First split than scale and pares. We do scaling on non-aggregated data (aggregation happens in parse).
+# If you can load everything in memory I would recommend reversing the order.
+
+# Split and Scale
+#parser_agg = MatrixParser(bank_list = bank_list)
+#parser_ss = SplitScaleParser(val_test_size=VAL_TEST_SIZE, val_size=VAL_SIZE)
+
+#train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(t2_anonimized_sql_df)
+#scaler = parser_ss.make_amount_scaler(t2_anonimized_sql_df, train_ids)
+
+# Parse
+#parse_write_subset(t2_anonimized_sql_df.iloc[train_ids], "_1y", "train", scaler, parser_ss, parser_agg, nr_chunks=NR_CHUNKS)
+#parse_write_subset(t2_anonimized_sql_df.iloc[val_ids], "_1y", "validate", scaler, parser_ss, parser_agg, nr_chunks=NR_CHUNKS)
+#parse_write_subset(t2_anonimized_sql_df.iloc[test_ids], "_1y", "test", scaler, parser_ss, parser_agg, nr_chunks=NR_CHUNKS)
