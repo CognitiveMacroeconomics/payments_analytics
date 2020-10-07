@@ -41,9 +41,40 @@ class MatrixParser:
         
         return np.array([date_time.year, date_time.month, date_time.isocalendar()[1], date_time.day, date_time.hour, date_time.minute, date_time.second]).ravel()
 
+    def __encode_banks(self, bank):
+
+        if bank not in self.bank_mapping.keys():
+            return self.bank_mapping['other']
+        else:
+            return self.bank_mapping[bank]
+
+    def __get_matrix_index(self, sender, receiver, payment_type):
+
+        matrix_size_1d = len(self.bank_mapping)
+        matrix_size_2d = len(self.bank_mapping) ** 2
+        number_of_payment_types = len(self.payment_mapping)
+
+        sender_ix = self.__encode_banks(sender)
+        receiver_ix = self.__encode_banks(receiver)
+        payment_ix = self.payment_mapping[payment_type]
+        
+        #print(sender_ix)
+        #print(receiver_ix)
+        #print(payment_ix)
+
+        flat_position_bank = sender_ix * matrix_size_1d + receiver_ix
+        flat_position_amount = payment_ix * matrix_size_2d + flat_position_bank
+        flat_position_count = number_of_payment_types * matrix_size_2d + flat_position_amount
+
+        #print(flat_position_amount)
+        #print(flat_position_count)
+    
+        return np.array([flat_position_amount,flat_position_count])
+
     def __to_vector(self, record):
         #print(record['sender_bank'])
-        a = np.concatenate((self.__time_conversion(record['acp_time']),[record["sender_bank"],record["receiver_bank"]],[self.payment_mapping[record["payment_type"]]],))
+        a = np.concatenate((self.__time_conversion(record['acp_time']),[record["sender_bank"],record["receiver_bank"]],[self.payment_mapping[record["payment_type"]]],\
+            self.__get_matrix_index(record["sender_bank"],record["receiver_bank"],record["payment_type"])))
         print(a)
         
 
@@ -77,7 +108,7 @@ if __name__ == "__main__":
 
     
 
-    # ['ATBRCA','BCANCA','BLCMCA','BNDCCA','BNPACA','BOFACA','BOFMCA','CCDQCA','CIBCCA','CUCXCA','HKBCCA','ICICCA','MCBTCA','NOSCCA','ROYCCA','SBOSCA','TDOMCA']
+    #bank_list = ['ATBRCA','BCANCA','BLCMCA','BNDCCA','BNPACA','BOFACA','BOFMCA','CCDQCA','CIBCCA','CUCXCA','HKBCCA','ICICCA','MCBTCA','NOSCCA','ROYCCA','SBOSCA','TDOMCA']
     bank_list = ['ATBRCA','BLCMCA','BNDCCA','BOFACA','BOFMCA','CIBCCA','CUCXCA']
 
     df = pd.DataFrame([dict(acp_time = r.acp_time, payment_amt = r.payment_amt, sender_bank = r.part_id_from,\
