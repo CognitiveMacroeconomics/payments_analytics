@@ -73,8 +73,11 @@ class MatrixParser:
 
     def __to_vector(self, record):
         #print(record['sender_bank'])
-        a = np.concatenate((self.__time_conversion(record['acp_time']),[record["sender_bank"],record["receiver_bank"]],[self.payment_mapping[record["payment_type"]]],\
-            self.__get_matrix_index(record["sender_bank"],record["receiver_bank"],record["payment_type"])))
+        a = np.concatenate((self.__time_conversion(record['acp_time']),[record["sender_bank"],record["receiver_bank"]],\
+            [self.payment_mapping[record["payment_type"]]],\
+            self.__get_matrix_index(record["sender_bank"],record["receiver_bank"],record["payment_type"]),\
+                [float(record["payment_amt"])],[1])).flatten()
+
         print(a)
         
 
@@ -83,7 +86,11 @@ class MatrixParser:
         if not isinstance(records, list):
             raise TypeError
         
-        all_records = np.array([self.__to_vector(record) for record in records])   
+        all_records = np.array([self.__to_vector(record) for record in records])
+
+        if aggregation:
+            all_records = self.__aggregate_time(data=all_records, aggregation_time=aggregation_time)
+        return all_records
     
 
 class BigQueryHandler:
