@@ -4,7 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 import numpy as np
 import pandas as pd
 import urllib
-from datetime import datetime
+from datetime import datetime, timedelta
+import time
 
 
 Base = declarative_base()
@@ -58,28 +59,40 @@ class MatrixParser:
         receiver_ix = self.__encode_banks(receiver)
         payment_ix = self.payment_mapping[payment_type]
         
-        #print(sender_ix)
-        #print(receiver_ix)
-        #print(payment_ix)
-
         flat_position_bank = sender_ix * matrix_size_1d + receiver_ix
         flat_position_amount = payment_ix * matrix_size_2d + flat_position_bank
         flat_position_count = number_of_payment_types * matrix_size_2d + flat_position_amount
-
-        #print(flat_position_amount)
-        #print(flat_position_count)
     
         return np.array([flat_position_amount,flat_position_count])
 
     def __to_vector(self, record):
         #print(record['sender_bank'])
-        a = np.concatenate((self.__time_conversion(record['acp_time']),[record["sender_bank"],record["receiver_bank"]],\
+        return np.concatenate((self.__time_conversion(record['acp_time']),[record["sender_bank"],record["receiver_bank"]],\
             [self.payment_mapping[record["payment_type"]]],\
             self.__get_matrix_index(record["sender_bank"],record["receiver_bank"],record["payment_type"]),\
                 [float(record["payment_amt"])],[1])).flatten()
 
-        print(a)
+
+    def get_column_names(self):
+
+        return(['YEAR', 'MONTH', 'WEEKNUMBER', 'DAY', 'HOURS', 'MINUTES', 'SECONDS'] +\
+            ['SENDER_BANK', 'RECEIVER_BANK'] + ['PAYMENT_TYPE'] +\
+                ['MATRIX_INDEX_AMOUNT', 'MATRIX_INDEX_COUNT'] +\
+                    ['AMOUNT_OF_TRANSACTION','NUMBER_OF_TRANSACTIONS']
+                    )
+
+    def __aggregate_time(self, data, aggregation_time=1):
         
+        df = pd.DataFrame(data)
+        df.columns = self.get_column_names()
+
+        return = np.array(df.assign(time_bucket = lambda x: x.apply(lambda y:\
+            time.gmtime(timedelta(hours=int(y['HOURS']), minutes=int(y['MINUTES']),seconds=int(y['SECONDS'])).seconds //\
+                    aggregation_time * aggregation_time),axis=1)).assign(HOURS = lambda x:x.apply(lambda y:y['time_bucket'].tm_hour, axis = 1),
+                    MINUTES = lambda x: x.apply(lambda y:y['time_bucket'].tm_min, axis = 1),
+                    SECONDS = lambda x: x.apply(lambda y:y['time_bucket'].tm_sec, axis = 1)).drop(['time_bucket'], axis = 1)\
+                    .groupby(['YEAR','MONTH','WEEKNUMBER','DAY','HOURS','MINUTES','SECONDS','SENDER_BANK','RECEIVER_BANK','PAYMENT_TYPE',\
+                        'MATRIX_INDEX_AMOUNT', 'MATRIX_INDEX_COUNT']).sum().reset_index())
 
     def parse(self, records, aggregation = False, aggregation_time = 1):
         
@@ -126,4 +139,4 @@ if __name__ == "__main__":
 
     parser = MatrixParser(bank_list=bank_list)
 
-    output_array = parser.parse(df.to_dict("records"), aggregation = False, aggregation_time = 300)
+    output_array = parser.parse(df.to_dict("records"), aggregation = True, aggregation_time = 300)
