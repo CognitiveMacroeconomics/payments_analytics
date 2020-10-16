@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import pandas as pd
 import matrix_parser
+import split_scale_parser
 
 Base = declarative_base()
 
@@ -50,8 +51,22 @@ if __name__ == "__main__":
     df = pd.DataFrame([dict(acp_time=r.acp_time, payment_amt=r.payment_amt,\
                         sender_bank=r.part_id_from, receiver_bank=r.part_id_to,\
                         payment_type=r.swift_msg_id) for r in test.result])
-    #print(df.head())    
-    parser = MatrixParser(bank_list=bank_list)
+    print(df.head())
 
-    output_array = parser.parse(df.to_dict("records"), aggregation=True,\
-                                aggregation_time=300)
+    # parser = matrix_parser.MatrixParser(bank_list=bank_list)
+    
+
+    # output_array = parser.parse(df.to_dict("records"), aggregation=True,\
+    #                             aggregation_time=300)
+
+    # print(len(output_array))
+
+    # test_data = pd.DataFrame(output_array, columns=parser.get_column_names())
+
+    parser_agg = matrix_parser.MatrixParser(bank_list=bank_list)
+    parser_ss = split_scale_parser.SplitScaleParser()
+
+    train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(df)
+    scaler_am = parser_ss.make_amount_scaler(df, train_ids)
+    
+    print(scaler_am)
