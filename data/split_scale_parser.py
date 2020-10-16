@@ -37,11 +37,11 @@ class SplitScaleParser:
         df["HOURS"] = df["HOURS"]/24
         df["MINUTES"] = df["MINUTES"]/60
         df["SECONDS"] = df["SECONDS"]/60
-        df["YEAR"] = (df["YEAR"] - 2010)/20
-        df["MONTH"] = df["MONTH"]/12
-        df["WEEKNUMBER"] = df["WEEKNUMBER"]/53
-        df["DAY"] = df["DAY"]/31
-        df["NUMBER_OF_TRANSACTIONS"] = df["NUMBER_OF_TRANSACTIONS"]/50 #ugly, but hard to scale without aggregation first
+        df["YEAR"] = (df["YEAR"].astype(int) - 2010)/20
+        df["MONTH"] = df["MONTH"].astype(int)/12
+        df["WEEKNUMBER"] = df["WEEKNUMBER"].astype(int)/53
+        df["DAY"] = df["DAY"].astype(int)/31
+        df["NUMBER_OF_TRANSACTIONS"] = df["NUMBER_OF_TRANSACTIONS"].astype(int)/50 #ugly, but hard to scale without aggregation first
 
         return df
 

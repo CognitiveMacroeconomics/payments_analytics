@@ -53,6 +53,7 @@ if __name__ == "__main__":
                         payment_type=r.swift_msg_id) for r in test.result])
     print(df.head())
 
+    ############################################################################
     # parser = matrix_parser.MatrixParser(bank_list=bank_list)
     
 
@@ -63,10 +64,22 @@ if __name__ == "__main__":
 
     # test_data = pd.DataFrame(output_array, columns=parser.get_column_names())
 
+    ############################################################################
+
+    ############################################################################
     parser_agg = matrix_parser.MatrixParser(bank_list=bank_list)
     parser_ss = split_scale_parser.SplitScaleParser()
 
     train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(df)
     scaler_am = parser_ss.make_amount_scaler(df, train_ids)
     
-    print(scaler_am)
+    output_array = parser_agg.parse(df.to_dict("records"), aggregation=True,\
+                                 aggregation_time=300)
+                                 
+    data_df = pd.DataFrame(output_array, columns=parser_agg.get_column_names())
+    print(data_df.head())
+    
+    scaled_data = parser_ss.scale_all(data_df, scaler_am)
+    print(scaled_data.head())
+    ############################################################################
+    

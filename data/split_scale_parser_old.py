@@ -36,7 +36,7 @@ class SplitScaleParser:
         df["HOURS"] = df["HOURS"]/24
         df["MINUTES"] = df["MINUTES"]/60
         df["SECONDS"] = df["SECONDS"]/60
-        df["YEAR"] = (df["YEAR"] - 2010)/20
+        df["YEAR"] = (int(df["YEAR"]) - 2010)/20
         df["MONTH"] = df["MONTH"]/12
         df["WEEKNUMBER"] = df["WEEKNUMBER"]/53
         df["DAY"] = df["DAY"]/31
