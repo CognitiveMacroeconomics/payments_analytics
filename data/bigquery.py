@@ -9,35 +9,6 @@ import os
 import matrix_parser
 import split_scale_parser
 
-# Base = declarative_base()
-
-# class PaymentTransaction(Base):
-#     """
-#     """
-#     __tablename__ = 'sample_payments'
-#     msg_ref_id = Column(String, primary_key = True)
-#     cycle_date = Column(Date)
-#     payment_tranche = Column(String)
-#     trans_time = Column(DateTime)
-#     acp_time = Column(DateTime)
-#     payment_amt = Column(Numeric)
-#     part_id_from = Column(String)
-#     part_id_to = Column(String)
-#     swift_msg_id = Column(String)
-
-    
-
-# class BigQueryHandler:
-#     """
-#     """
-#     def __init__(self,cred_path):
-#         bigquery_uri = f'bigquery://deeplearning-291017/deeplearnig'
-#         self.engine = create_engine(bigquery_uri, credentials_path=cred_path)
-#         self.Session = sessionmaker()
-#         self.Session.configure(bind=self.engine)
-#         self.session = self.Session()
-#         self.result = self.session.query(PaymentTransaction)\
-#                         .order_by("acp_time").all()
 
 class BigQueryHandler:
 
@@ -59,11 +30,20 @@ if __name__ == "__main__":
 
     #test = BigQueryHandler('credentials.json')
 
-    query = "SELECT * FROM deeplearning-291017.deeplearnig.sample_payments"
+    query = "SELECT acp_time, payment_amt, part_id_from, part_id_to,\
+            swift_msg_id FROM\
+            deeplearning-291017.deeplearnig.sample_payments"
+
     prj_id = "deeplearning-291017"
     bqh = BigQueryHandler(query, prj_id)
     df = bqh.get_dataframe()
 
+    print(df.head())
+
+    df.rename(columns={'acp_time': 'acp_time','payment_amt': 'payment_amt',\
+                        'part_id_from': 'sender_bank',\
+                        'part_id_to': 'receiver_bank',\
+                        'swift_msg_id': 'payment_type'}, inplace=True)
     print(df.head())
 
     #bank_list = ['ATBRCA','BCANCA','BLCMCA','BNDCCA','BNPACA','BOFACA',\
@@ -109,26 +89,26 @@ if __name__ == "__main__":
 
     ############################################################################
     
-    # VAL_TEST_SIZE = 0.3
-    # VAL_SIZE = 0.5
-    # NR_CHUNKS = 1
+    VAL_TEST_SIZE = 0.3
+    VAL_SIZE = 0.5
+    NR_CHUNKS = 1
     
-    # parser_agg = matrix_parser.MatrixParser(bank_list=bank_list)
-    # parser_ss =split_scale_parser. SplitScaleParser(\
-    #                                 val_test_size=VAL_TEST_SIZE,\
-    #                                 val_size=VAL_SIZE)
+    parser_agg = matrix_parser.MatrixParser(bank_list=bank_list)
+    parser_ss =split_scale_parser. SplitScaleParser(\
+                                    val_test_size=VAL_TEST_SIZE,\
+                                    val_size=VAL_SIZE)
 
-    # train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(df)
-    # scaler = parser_ss.make_amount_scaler(df, train_ids)
+    train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(df)
+    scaler = parser_ss.make_amount_scaler(df, train_ids)
 
-    # def parser_write_subset(df.iloc[train_ids], "_1y", "train", scaler,\
-    #                         parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    def parser_write_subset(df.iloc[train_ids], "_1y", "train", scaler,\
+                            parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
     
-    # def parser_write_subset(df.iloc[train_ids], "_1y", "validate", scaler,\
-    #                         parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    def parser_write_subset(df.iloc[train_ids], "_1y", "validate", scaler,\
+                            parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
 
-    # def parser_write_subset(df.iloc[train_ids], "_1y", "test", scaler,\
-    #                         parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    def parser_write_subset(df.iloc[train_ids], "_1y", "test", scaler,\
+                            parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
 
 
     
