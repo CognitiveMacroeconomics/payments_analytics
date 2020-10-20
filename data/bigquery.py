@@ -8,6 +8,7 @@ import google.auth
 import os
 import matrix_parser
 import split_scale_parser
+import numpy as np
 
 
 class BigQueryHandler:
@@ -23,6 +24,27 @@ class BigQueryHandler:
 
 def parser_write_subset(df, data_name, set_name, scalar, parser_ss, parser_agg,\
                         nr_chunks=1):
+
+    print("Starting with processing: {}".format(set_name))
+    
+    if data_name == "":
+        destination_table="deeplearnig.sample_{}".format(set_name)
+    else:
+        destination_table="deeplearnig.sample_{}_{}".format(set_name, data_name)
+    
+    print(destination_table)
+    counter = 0
+    print("length of the dataframe is:{}".format(len(df)))
+    print("Number of chunks are:{}".format(nr_chunks))
+    print("Step size is:{}".format(len(df)/nr_chunks))
+    step_size = int(np.ceil(len(df)/nr_chunks))
+    print("Step size is:{}".format(step_size))
+    for step in range(0,len(df), step_size):
+        print("Step is:{}".format(step))
+        if step+step_size<=len(df):
+            print(step+step_size)
+            
+
     return None
 
 
@@ -38,7 +60,7 @@ if __name__ == "__main__":
     bqh = BigQueryHandler(query, prj_id)
     df = bqh.get_dataframe()
 
-    print(df.head())
+    #print(df.head())
 
     df.rename(columns={'acp_time': 'acp_time','payment_amt': 'payment_amt',\
                         'part_id_from': 'sender_bank',\
@@ -91,7 +113,7 @@ if __name__ == "__main__":
     
     VAL_TEST_SIZE = 0.3
     VAL_SIZE = 0.5
-    NR_CHUNKS = 1
+    NR_CHUNKS = 2
     
     parser_agg = matrix_parser.MatrixParser(bank_list=bank_list)
     parser_ss =split_scale_parser. SplitScaleParser(\
@@ -101,14 +123,15 @@ if __name__ == "__main__":
     train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(df)
     scaler = parser_ss.make_amount_scaler(df, train_ids)
 
-    def parser_write_subset(df.iloc[train_ids], "_1y", "train", scaler,\
-                            parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
-    
-    def parser_write_subset(df.iloc[train_ids], "_1y", "validate", scaler,\
-                            parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    #print(df.iloc[train_ids])
 
-    def parser_write_subset(df.iloc[train_ids], "_1y", "test", scaler,\
-                            parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    parser_write_subset(df.iloc[train_ids],"_1y","train", scaler, parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    
+    #def parser_write_subset(df.iloc[train_ids], "_1y", "validate", scaler,\
+    #                        parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+
+    #def parser_write_subset(df.iloc[train_ids], "_1y", "test", scaler,\
+    #                        parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
 
 
     
