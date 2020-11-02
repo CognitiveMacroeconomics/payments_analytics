@@ -35,9 +35,9 @@ def parser_write_subset(df, data_name, set_name, scalar, parser_ss, parser_agg,\
     print("Starting with processing: {}".format(set_name))
     
     if data_name == "":
-        table_name = "deeplearnig.sample_{}".format(set_name)
+        table_name = "deeplearnig.payment_transaction_2019_{}".format(set_name)
     else:
-        table_name = "deeplearnig.sample_{}_{}".format(set_name, data_name)
+        table_name = "deeplearnig.payment_transaction_2019_{}_{}".format(set_name, data_name)
     
     print(table_name)
     counter = 0
@@ -66,6 +66,7 @@ def parser_write_subset(df, data_name, set_name, scalar, parser_ss, parser_agg,\
         
 
         if set_name != "test":
+            print("Chunk is:\n{}".format(chunk))
             chunk = parse_chunk(chunk, parser_agg)
             parser_ss.scale_all(chunk, scaler)
         
@@ -75,7 +76,7 @@ def parser_write_subset(df, data_name, set_name, scalar, parser_ss, parser_agg,\
             
         print("/r{:0.4f}".format((counter*100/nr_chunks)), end="")
     
-    print("\rFinished parsing ans writing: {}".format(set_name), end="")
+    print("\rFinished parsing and writing: {}".format(set_name), end="")
             
 
 
@@ -83,9 +84,9 @@ if __name__ == "__main__":
 
     #test = BigQueryHandler('credentials.json')
 
-    query = "SELECT acp_time, payment_amt, part_id_from, part_id_to,\
+    query = "SELECT trans_time, payment_amt, part_id_from, part_id_to,\
             swift_msg_id FROM\
-            deeplearning-291017.deeplearnig.sample_payments order by acp_time"
+            deeplearning-291017.deeplearnig.payment_transaction_2019 order by trans_time"
 
     prj_id = "deeplearning-291017"
     bqh = BigQueryHandler(query, prj_id)
@@ -93,7 +94,7 @@ if __name__ == "__main__":
 
     #print(df.head())
 
-    df.rename(columns={'acp_time': 'acp_time','payment_amt': 'payment_amt',\
+    df.rename(columns={'trans_time': 'time','payment_amt': 'payment_amt',\
                         'part_id_from': 'sender_bank',\
                         'part_id_to': 'receiver_bank',\
                         'swift_msg_id': 'payment_type'}, inplace=True)
@@ -135,7 +136,7 @@ if __name__ == "__main__":
     #                              aggregation_time=300)
                                  
     # data_df = pd.DataFrame(output_array, columns=parser_agg.get_column_names())
-    # print(data_df.head())
+    # #print(data_df.head())
     
     # scaled_data = parser_ss.scale_all(data_df, scaler_am)
     # print(scaled_data.head())
@@ -145,7 +146,7 @@ if __name__ == "__main__":
     
     VAL_TEST_SIZE = 0.3
     VAL_SIZE = 0.5
-    NR_CHUNKS = 2
+    NR_CHUNKS = 10000
     
     parser_agg = matrix_parser_new.MatrixParser(bank_list=bank_list)
     parser_ss =split_scale_parser_new. SplitScaleParser(\

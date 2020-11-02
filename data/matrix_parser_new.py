@@ -22,8 +22,10 @@ class MatrixParser:
 
     def __time_conversion(self, date_time):
         
+        #print("{}".format(date_time))
+
         return np.array([date_time.year, date_time.month,\
-                        date_time.isocalendar()[1], date_time.day,\
+                        date_time.utcnow().isocalendar()[1], date_time.day,\
                         date_time.hour, date_time.minute, date_time.second])\
                         .ravel()
 
@@ -53,12 +55,20 @@ class MatrixParser:
 
     def __to_vector(self, record):
         #print(record['sender_bank'])
-        return np.concatenate((self.__time_conversion(record['acp_time']),\
+        try:
+            #print("Here 3")
+            #print(record)
+            return np.concatenate((self.__time_conversion(record['time']),\
                             [record["sender_bank"],record["receiver_bank"]],\
                             [self.payment_mapping[record["payment_type"]]],\
                             self.__get_matrix_index(record["sender_bank"],\
                             record["receiver_bank"],record["payment_type"]),\
                             [float(record["payment_amt"])],[1])).flatten()
+    
+        except Exception as e:
+            #print("Record is\n{}".format(record))
+            print(e)
+            
 
 
     def get_column_names(self):
@@ -72,28 +82,51 @@ class MatrixParser:
         
         df = pd.DataFrame(data)
         df.columns = self.get_column_names()
+        print("Here    ")
+        print(df.head())
+        df['YEAR'] = df['YEAR'].astype(str).astype(int)
+        df['MONTH'] = df['MONTH'].astype(str).astype(int)
+        df['WEEKNUMBER'] = df['WEEKNUMBER'].astype(str).astype(int)
+        df['DAY'] = df['DAY'].astype(str).astype(int)
+        df['HOURS'] = df['HOURS'].astype(str).astype(int)
+        df['MINUTES'] = df['MINUTES'].astype(str).astype(int)
+        df['SECONDS'] = df['SECONDS'].astype(str).astype(float)
+        df['SENDER_BANK'] = df['SENDER_BANK'].astype(str).astype(str)
+        df['RECEIVER_BANK'] = df['RECEIVER_BANK'].astype(str).astype(str)
+        df['PAYMENT_TYPE'] = df['PAYMENT_TYPE'].astype(str).astype(str)
+        df['MATRIX_INDEX_AMOUNT'] = df['MATRIX_INDEX_AMOUNT'].astype(str).astype(int)
+        df['MATRIX_INDEX_COUNT'] = df['MATRIX_INDEX_COUNT'].astype(str).astype(int)
+        df['AMOUNT_OF_TRANSACTION'] = df['AMOUNT_OF_TRANSACTION'].astype(str).astype(float)
+        df['NUMBER_OF_TRANSACTIONS'] = df['NUMBER_OF_TRANSACTIONS'].astype(str).astype(int)
 
-        return np.array(df.assign(time_bucket = lambda x: x.apply(lambda y:\
-            time.gmtime(timedelta(hours=int(y['HOURS']),\
-            minutes=int(y['MINUTES']),seconds=int(y['SECONDS'])).seconds //\
-            aggregation_time * aggregation_time),axis=1))\
-            .assign(HOURS = lambda x:x.apply(lambda y:y['time_bucket']\
-            .tm_hour, axis = 1), MINUTES = lambda x: x.apply(lambda y:\
-            y['time_bucket'].tm_min, axis = 1), SECONDS = lambda x:\
-            x.apply(lambda y:y['time_bucket'].tm_sec, axis = 1))\
-            .drop(['time_bucket'], axis = 1).groupby(['YEAR','MONTH',\
-            'WEEKNUMBER','DAY','HOURS','MINUTES','SECONDS','SENDER_BANK',\
-            'RECEIVER_BANK','PAYMENT_TYPE', 'MATRIX_INDEX_AMOUNT',\
-            'MATRIX_INDEX_COUNT']).sum().reset_index())
+        print(df.dtypes)
+        return np.array(df
+            .assign(time_bucket = lambda x: x.apply(lambda y: time.gmtime(timedelta(hours=y['HOURS'],
+                                                                                             minutes=y['MINUTES'],
+                                                                                             seconds=y['SECONDS']).seconds // aggregation_time * aggregation_time), axis=1))
+            .assign(HOURS = lambda x: x.apply( lambda y: y['time_bucket'].tm_hour, axis=1), 
+                    MINUTES = lambda x: x.apply( lambda y: y['time_bucket'].tm_min, axis=1),
+                    SECONDS = lambda x: x.apply( lambda y: y['time_bucket'].tm_sec, axis=1))
+            .drop(['time_bucket'], axis=1)
+            .groupby(['YEAR', 'MONTH', 'WEEKNUMBER', 'DAY', 'HOURS', 'MINUTES', 'SECONDS', 
+                      'SENDER_BANK', 'RECEIVER_BANK', "PAYMENT_TYPE",
+                      'MATRIX_INDEX_AMOUNT', 'MATRIX_INDEX_COUNT'])
+            .sum()
+            .reset_index()
+        )
 
     def parse(self, records, aggregation = False, aggregation_time = 1):
         
         if not isinstance(records, list):
             raise TypeError
-        
-        all_records = np.array([self.__to_vector(record) for record in records])
 
+        all_records = np.array([self.__to_vector(record) for record in records])
+        #print("Here 4")
+        #print(all_records)
         if aggregation:
             all_records = self.__aggregate_time(data=all_records,\
                                             aggregation_time=aggregation_time)
+
+        #print("Here 5")
+        #print(all_records)
         return all_records

@@ -31,17 +31,22 @@ class SplitScaleParser:
 #               )
 
     def scale_all(self, df, amount_scaler):
-        df["AMOUNT_OF_TRANSACTION"] = amount_scaler.transform(df[["AMOUNT_OF_TRANSACTION"]])
-      #  df["NUMBER_OF_TRANSACTIONS"] = count_scaler.transform(df[["NUMBER_OF_TRANSACTIONS"]])
+        try:
+            df["AMOUNT_OF_TRANSACTION"] = amount_scaler.transform(df[["AMOUNT_OF_TRANSACTION"]])
+            #  df["NUMBER_OF_TRANSACTIONS"] = count_scaler.transform(df[["NUMBER_OF_TRANSACTIONS"]])
 
-        df["HOURS"] = df["HOURS"]/24
-        df["MINUTES"] = df["MINUTES"]/60
-        df["SECONDS"] = df["SECONDS"]/60
-        df["YEAR"] = (df["YEAR"].astype(int) - 2010)/20
-        df["MONTH"] = df["MONTH"].astype(int)/12
-        df["WEEKNUMBER"] = df["WEEKNUMBER"].astype(int)/53
-        df["DAY"] = df["DAY"].astype(int)/31
-        df["NUMBER_OF_TRANSACTIONS"] = df["NUMBER_OF_TRANSACTIONS"].astype(int)/50 #ugly, but hard to scale without aggregation first
+            df["HOURS"] = df["HOURS"].astype(int)/24
+            df["MINUTES"] = df["MINUTES"].astype(int)/60
+            df["SECONDS"] = df["SECONDS"].astype(int)/60
+            df["YEAR"] = (df["YEAR"].astype(int) - 2010)/20
+            df["MONTH"] = df["MONTH"].astype(int)/12
+            df["WEEKNUMBER"] = df["WEEKNUMBER"].astype(int)/53
+            df["DAY"] = df["DAY"].astype(int)/31
+            df["NUMBER_OF_TRANSACTIONS"] = df["NUMBER_OF_TRANSACTIONS"].astype(int)/50 #ugly, but hard to scale without aggregation first
+
+        except Exception as e:
+            print(df["AMOUNT_OF_TRANSACTION"])
+            print(e)
 
         return df
 
