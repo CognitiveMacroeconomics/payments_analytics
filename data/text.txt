@@ -1,0 +1,162 @@
+{'MT205': 0, 'MT103': 1}
+
+{'ATBRCA': 0, 
+'BLCMCA': 1, 
+'BNDCCA': 2, 
+'BNPACA': 3, 
+'BOFACA': 4, 
+'BOFMCA': 5, 
+'CCDQCA': 6, 
+'CIBCCA': 7, 
+'CUCXCA': 8, 
+'HKBCCA': 9, 
+'ICICCA': 10, 
+'MCBTCA': 11, 
+'NOSCCA': 12, 
+'ROYCCA': 13, 
+'SBOSCA': 14, 
+'TDOMCA': 15, 
+'other': 16}
+
+                               time         payment_amt sender_bank receiver_bank payment_type
+0  2015-01-02 08:00:22.080000+00:00     66578.560000000      TDOMCA        CIBCCA        MT205
+1  2015-01-02 08:11:22.060000+00:00  11869327.550000000      BOFACA        CIBCCA        MT103
+2  2015-01-02 10:00:23.570000+00:00    350000.000000000      TDOMCA        CIBCCA        MT205
+3  2015-01-02 10:00:24.710000+00:00      1500.000000000      TDOMCA        CIBCCA        MT205
+4  2015-01-02 10:00:26.200000+00:00     23000.000000000      TDOMCA        CIBCCA        MT205
+5  2015-01-02 10:00:27.540000+00:00      5575.740000000      TDOMCA        CIBCCA        MT205
+6  2015-01-02 10:00:27.940000+00:00      1800.000000000      TDOMCA        CIBCCA        MT205
+7  2015-01-02 10:00:29.610000+00:00      1500.000000000      TDOMCA        CIBCCA        MT205
+8  2015-01-02 10:00:30.760000+00:00     24500.000000000      TDOMCA        CIBCCA        MT205
+9  2015-01-02 10:00:31.180000+00:00       709.320000000      TDOMCA        CIBCCA        MT103
+10 2015-01-02 10:00:32.530000+00:00       319.040000000      TDOMCA        CIBCCA        MT103
+11        2015-01-02 10:00:34+00:00      1618.090000000      TDOMCA        CIBCCA        MT103
+12 2015-01-02 10:00:34.520000+00:00       578.280000000      TDOMCA        CIBCCA        MT103
+13 2015-01-02 10:00:35.640000+00:00       697.930000000      TDOMCA        CIBCCA        MT103
+14 2015-01-02 10:00:36.110000+00:00       249.240000000      TDOMCA        CIBCCA        MT103
+15 2015-01-02 10:00:37.370000+00:00       121.040000000      TDOMCA        CIBCCA        MT103
+16 2015-01-02 10:00:38.880000+00:00       222.180000000      TDOMCA        CIBCCA        MT103
+17 2015-01-02 10:00:40.450000+00:00       106.800000000      TDOMCA        CIBCCA        MT103
+18 2015-01-02 10:00:40.830000+00:00    115839.000000000      CIBCCA        ROYCCA        MT205
+19 2015-01-02 10:00:43.770000+00:00      8913.000000000      CIBCCA        ROYCCA        MT103
+
+WITHOUT AGGREGATION
+
+    YEAR MONTH WEEKNUMBER DAY HOURS MINUTES SECONDS SENDER_BANK RECEIVER_BANK PAYMENT_TYPE MATRIX_INDEX_AMOUNT MATRIX_INDEX_COUNT AMOUNT_OF_TRANSACTION NUMBER_OF_TRANSACTIONS
+0   2015     1          1   2     8       0      22      TDOMCA        CIBCCA            0                 262                840              66578.56                      1
+1   2015     1          1   2     8      11      22      BOFACA        CIBCCA            1                 364                942           11869327.55                      1
+2   2015     1          1   2    10       0      23      TDOMCA        CIBCCA            0                 262                840              350000.0                      1
+3   2015     1          1   2    10       0      24      TDOMCA        CIBCCA            0                 262                840                1500.0                      1
+4   2015     1          1   2    10       0      26      TDOMCA        CIBCCA            0                 262                840               23000.0                      1
+5   2015     1          1   2    10       0      27      TDOMCA        CIBCCA            0                 262                840               5575.74                      1
+6   2015     1          1   2    10       0      27      TDOMCA        CIBCCA            0                 262                840                1800.0                      1
+7   2015     1          1   2    10       0      29      TDOMCA        CIBCCA            0                 262                840                1500.0                      1
+8   2015     1          1   2    10       0      30      TDOMCA        CIBCCA            0                 262                840               24500.0                      1
+9   2015     1          1   2    10       0      31      TDOMCA        CIBCCA            1                 551               1129                709.32                      1
+10  2015     1          1   2    10       0      32      TDOMCA        CIBCCA            1                 551               1129                319.04                      1
+11  2015     1          1   2    10       0      34      TDOMCA        CIBCCA            1                 551               1129               1618.09                      1
+12  2015     1          1   2    10       0      34      TDOMCA        CIBCCA            1                 551               1129                578.28                      1
+13  2015     1          1   2    10       0      35      TDOMCA        CIBCCA            1                 551               1129                697.93                      1
+14  2015     1          1   2    10       0      36      TDOMCA        CIBCCA            1                 551               1129                249.24                      1
+15  2015     1          1   2    10       0      37      TDOMCA        CIBCCA            1                 551               1129                121.04                      1
+16  2015     1          1   2    10       0      38      TDOMCA        CIBCCA            1                 551               1129                222.18                      1
+17  2015     1          1   2    10       0      40      TDOMCA        CIBCCA            1                 551               1129                 106.8                      1
+18  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            0                 132                710              115839.0                      1
+19  2015     1          1   2    10       0      43      CIBCCA        ROYCCA            1                 421                999                8913.0                      1
+
+
+WITH AGGREGATION OF 5 SECONDS
+
+   YEAR MONTH WEEKNUMBER DAY HOURS MINUTES SECONDS SENDER_BANK RECEIVER_BANK PAYMENT_TYPE MATRIX_INDEX_AMOUNT MATRIX_INDEX_COUNT AMOUNT_OF_TRANSACTION NUMBER_OF_TRANSACTIONS
+0  2015     1          1   2     8       0      20      TDOMCA        CIBCCA            0                 262                840               66578.6                      1
+1  2015     1          1   2     8      11      20      BOFACA        CIBCCA            1                 364                942           1.18693e+07                      1
+2  2015     1          1   2    10       0      20      TDOMCA        CIBCCA            0                 262                840                351500                      2
+3  2015     1          1   2    10       0      25      TDOMCA        CIBCCA            0                 262                840               31875.7                      4
+4  2015     1          1   2    10       0      30      TDOMCA        CIBCCA            0                 262                840                 24500                      1
+5  2015     1          1   2    10       0      30      TDOMCA        CIBCCA            1                 551               1129               3224.73                      4
+6  2015     1          1   2    10       0      35      TDOMCA        CIBCCA            1                 551               1129               1290.39                      4
+7  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            0                 132                710                115839                      1
+8  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            1                 421                999                  8913                      1
+9  2015     1          1   2    10       0      40      TDOMCA        CIBCCA            1                 551               1129                 106.8                      1
+
+
+WITH AGGREGATION of 10 SECONDS
+
+Here
+   YEAR MONTH WEEKNUMBER DAY HOURS MINUTES SECONDS SENDER_BANK RECEIVER_BANK PAYMENT_TYPE MATRIX_INDEX_AMOUNT MATRIX_INDEX_COUNT AMOUNT_OF_TRANSACTION NUMBER_OF_TRANSACTIONS
+0  2015     1          1   2     8       0      20      TDOMCA        CIBCCA            0                 262                840               66578.6                      1
+1  2015     1          1   2     8      11      20      BOFACA        CIBCCA            1                 364                942           1.18693e+07                      1
+2  2015     1          1   2    10       0      20      TDOMCA        CIBCCA            0                 262                840                383376                      6
+3  2015     1          1   2    10       0      30      TDOMCA        CIBCCA            0                 262                840                 24500                      1
+4  2015     1          1   2    10       0      30      TDOMCA        CIBCCA            1                 551               1129               4515.12                      8
+5  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            0                 132                710                115839                      1
+6  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            1                 421                999                  8913                      1
+7  2015     1          1   2    10       0      40      TDOMCA        CIBCCA            1                 551               1129                 106.8                      1
+
+
+WITH AGGREGATION of 20 SECONDS
+
+   YEAR MONTH WEEKNUMBER DAY HOURS MINUTES SECONDS SENDER_BANK RECEIVER_BANK PAYMENT_TYPE MATRIX_INDEX_AMOUNT MATRIX_INDEX_COUNT AMOUNT_OF_TRANSACTION NUMBER_OF_TRANSACTIONS
+0  2015     1          1   2     8       0      20      TDOMCA        CIBCCA            0                 262                840               66578.6                      1
+1  2015     1          1   2     8      11      20      BOFACA        CIBCCA            1                 364                942           1.18693e+07                      1
+2  2015     1          1   2    10       0      20      TDOMCA        CIBCCA            0                 262                840                407876                      7
+3  2015     1          1   2    10       0      20      TDOMCA        CIBCCA            1                 551               1129               4515.12                      8
+4  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            0                 132                710                115839                      1
+5  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            1                 421                999                  8913                      1
+6  2015     1          1   2    10       0      40      TDOMCA        CIBCCA            1                 551               1129                 106.8                      1
+
+
+WITH AGGREGATION of 30 SECONDS
+
+   YEAR MONTH WEEKNUMBER DAY HOURS MINUTES SECONDS SENDER_BANK RECEIVER_BANK PAYMENT_TYPE MATRIX_INDEX_AMOUNT MATRIX_INDEX_COUNT AMOUNT_OF_TRANSACTION NUMBER_OF_TRANSACTIONS
+0  2015     1          1   2     8       0       0      TDOMCA        CIBCCA            0                 262                840               66578.6                      1
+1  2015     1          1   2     8      11       0      BOFACA        CIBCCA            1                 364                942           1.18693e+07                      1
+2  2015     1          1   2    10       0       0      TDOMCA        CIBCCA            0                 262                840                383376                      6
+3  2015     1          1   2    10       0      30      CIBCCA        ROYCCA            0                 132                710                115839                      1
+4  2015     1          1   2    10       0      30      CIBCCA        ROYCCA            1                 421                999                  8913                      1
+5  2015     1          1   2    10       0      30      TDOMCA        CIBCCA            0                 262                840                 24500                      1
+6  2015     1          1   2    10       0      30      TDOMCA        CIBCCA            1                 551               1129               4621.92                      9
+
+
+WITH AGGREGATION of 40 SECONDS
+
+   YEAR MONTH WEEKNUMBER DAY HOURS MINUTES SECONDS SENDER_BANK RECEIVER_BANK PAYMENT_TYPE MATRIX_INDEX_AMOUNT MATRIX_INDEX_COUNT AMOUNT_OF_TRANSACTION NUMBER_OF_TRANSACTIONS
+0  2015     1          1   2     8       0       0      TDOMCA        CIBCCA            0                 262                840               66578.6                      1
+1  2015     1          1   2     8      11      20      BOFACA        CIBCCA            1                 364                942           1.18693e+07                      1
+2  2015     1          1   2    10       0       0      TDOMCA        CIBCCA            0                 262                840                407876                      7
+3  2015     1          1   2    10       0       0      TDOMCA        CIBCCA            1                 551               1129               4515.12                      8
+4  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            0                 132                710                115839                      1
+5  2015     1          1   2    10       0      40      CIBCCA        ROYCCA            1                 421                999                  8913                      1
+6  2015     1          1   2    10       0      40      TDOMCA        CIBCCA            1                 551               1129                 106.8                      1
+
+
+
+Traceback (most recent call last):
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\pandas_gbq\gbq.py", line 629, in load_data
+    for remaining_rows in chunks:
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\pandas_gbq\load.py", line 82, in load_chunks
+    location=location,
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\google\cloud\bigquery\job.py", line 835, in result
+    return super(_AsyncJob, self).result(timeout=timeout)
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\google\api_core\future\polling.py", line 130, in result
+    raise self._exception
+google.api_core.exceptions.Forbidden: 403 Quota exceeded: Your table exceeded quota for imports or query appends per table. For more information, see https://cloud.google.com/bigquery/troubleshooting-errors
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File ".\bigquery.py", line 167, in <module>
+    parser_agg, nr_chunks = NR_CHUNKS)
+  File ".\bigquery.py", line 75, in parser_write_subset
+    if_exists='append')
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\pandas\core\frame.py", line 1657, in to_gbq
+    credentials=credentials,
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\pandas\io\gbq.py", line 228, in to_gbq
+    private_key=private_key,
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\pandas_gbq\gbq.py", line 1208, in to_gbq
+    progress_bar=progress_bar,
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\pandas_gbq\gbq.py", line 636, in load_data
+    self.process_http_error(ex)
+  File "C:\Users\shamid\AppData\Local\Programs\Python\Python37\lib\site-packages\pandas_gbq\gbq.py", line 435, in process_http_error
+    raise GenericGBQException("Reason: {0}".format(ex))
+pandas_gbq.gbq.GenericGBQException: Reason: 403 Quota exceeded: Your table exceeded quota for imports or query appends per table. For more information, see https://cloud.google.com/bigquery/troubleshooting-errors

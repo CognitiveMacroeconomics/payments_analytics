@@ -20,11 +20,11 @@ class SplitScaleParser:
 
     def make_amount_scaler(self, df, train_set_ids):
          
-         return (StandardScaler(copy=False).
-                 fit(df.iloc[train_set_ids][["payment_amt"]])
-                )
+          return (StandardScaler(copy=False).
+                  fit(df.iloc[train_set_ids][["payment_amt"]])
+                 )
 
-# Maybe usable if we don't do chuncks
+# Maybe usable if we don't do chunks
 #    def make_count_scaler(self, df, train_set_ids):
 #         return (StandardScaler(copy=False).
 #                 fit(df.iloc[train_set_ids][["NUMBER_OF_TRANSACTIONS"]])
