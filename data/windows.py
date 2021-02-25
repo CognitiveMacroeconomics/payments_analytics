@@ -99,6 +99,8 @@ class MemoryPreparer(Sequence):
         """"Prepares dataset by dropping unnessecary columns and sorting by time""" 
         df_clean = self.drop_specific_columns(df)
         df_clean = self.sort_by_time(df_clean).values
+        if !self.tick:
+            df_clean = make_matrix(df_clean) #Canada please check if I did not mess this up
         self.x = df_clean
         self.feature_nr = df_clean[0].shape[0]
         
