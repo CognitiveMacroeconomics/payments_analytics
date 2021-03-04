@@ -1,13 +1,9 @@
-# from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String,\
-#                         Date, DateTime, Numeric
-# from sqlalchemy.orm import sessionmaker
-# from sqlalchemy.ext.declarative import declarative_base
 import pandas as pd
 from pandas.io import gbq
 import google.auth
 import os
-import matrix_parser_new
-import split_scale_parser_new
+import data.matrix_parser_new
+import data.split_scale_parser_new
 import numpy as np
 
 
@@ -149,28 +145,28 @@ if __name__ == "__main__":
 
     ############################################################################
     
-    VAL_TEST_SIZE = 0.3
-    VAL_SIZE = 0.5
-    NR_CHUNKS = 50
+    # VAL_TEST_SIZE = 0.3
+    # VAL_SIZE = 0.5
+    # NR_CHUNKS = 50
     
-    parser_agg = matrix_parser_new.MatrixParser(bank_list=bank_list)
-    parser_ss =split_scale_parser_new. SplitScaleParser(\
-                                    val_test_size=VAL_TEST_SIZE,\
-                                   val_size=VAL_SIZE)
+    # parser_agg = matrix_parser_new.MatrixParser(bank_list=bank_list)
+    # parser_ss =split_scale_parser_new. SplitScaleParser(\
+    #                                 val_test_size=VAL_TEST_SIZE,\
+    #                                val_size=VAL_SIZE)
 
-    train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(df)
-    scaler = parser_ss.make_amount_scaler(df, train_ids)
+    # train_ids, val_ids, test_ids = parser_ss.split_train_val_test_index(df)
+    # scaler = parser_ss.make_amount_scaler(df, train_ids)
 
-    #print(df.iloc[train_ids])
+    # #print(df.iloc[train_ids])
 
-    parser_write_subset(df.iloc[train_ids],"y","train", scaler, parser_ss,\
-                        parser_agg, nr_chunks = NR_CHUNKS)
+    # parser_write_subset(df.iloc[train_ids],"y","train", scaler, parser_ss,\
+    #                     parser_agg, nr_chunks = NR_CHUNKS)
     
-    parser_write_subset(df.iloc[val_ids], "y", "validate", scaler,\
-                           parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    # parser_write_subset(df.iloc[val_ids], "y", "validate", scaler,\
+    #                        parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
 
-    parser_write_subset(df.iloc[test_ids], "y", "test", scaler,\
-                           parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
+    # parser_write_subset(df.iloc[test_ids], "y", "test", scaler,\
+    #                        parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
 
 
     ############################################################################

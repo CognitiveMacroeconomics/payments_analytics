@@ -1,44 +1,87 @@
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-# -*- coding: utf-8 -*-
-import dataiku
-import pandas as pd, numpy as np
-from dataiku import pandasutils as pdu
-from target2_analytics.models.autoencoder import make_autoencoder
+from pandas.io import gbq
+import google.auth
+import os
+import pandas as pd
+import numpy as np
+from data import MemoryPreparer 
+from models.autoencoder import make_autoencoder
 
-#global params
-WINDOW_SIZE = 10
+# global params (adapt to what you need, start with low window size!)
+WINDOW_SIZE = 50
 HIDDEN_LAYER_SIZE = 16
 EPOCHS = 100
-BATCH_SIZE = 100
+BATCH_SIZE = 2000
 
-# Read recipe inputs
-t2_parsed_train = dataiku.Dataset("t2_anon_sql_train_1y")
-t2_parsed_train_df = t2_parsed_train.get_dataframe()
-t2_parsed_validate = dataiku.Dataset("t2_anon_sql_validate_1y")
-t2_parsed_validate_df = t2_parsed_validate.get_dataframe()
+class BigQueryHandler:
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-#Make model
-inp_shape = t2_parsed_train_df.iloc[0].shape
-model = make_autoencoder(input_shape=inp_shape, hidden_layer_size=HIDDEN_LAYER_SIZE)
-model.compile(optimizer="adam", loss="mse")
-print(model.summary())
+    def __init__(self,query, prj_id):
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-#Fit model
-history = model.fit(t2_parsed_train_df, t2_parsed_train_df,
-             validation_data=(t2_parsed_validate_df, t2_parsed_validate_df),
-             epochs=EPOCHS,
-             batch_size=BATCH_SIZE)
-# NB: DSS supports several kinds of APIs for reading and writin+g data. Please see doc.
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'data.credentials.json'
+        self.data_df = gbq.read_gbq(query, project_id=prj_id)
 
-hist_df = pd.DataFrame(history.history)
+    def get_dataframe(self):
+        return self.data_df
 
-# Write recipe outputs
-model_dir = dataiku.Folder("1y_autoencoder").get_info()["path"]
-hist_df.to_csv("{}/{}".format(model_dir, "autoencoder_results.csv"))
-model.save("{}/{}".format(model_dir, "autoencoder"))
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-fig = hist_df.plot().get_figure()
-fig.savefig("{}/{}".format(model_dir, "auto_encoder.jpg"))
+if __name__ == "__main__":
+
+    query_1 = "SELECT * FROM\
+            acs-research-prj.deeplearning.payment_transaction_train_y\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS"
+
+    
+    prj_id = "acs-research-prj"
+    lvts_prased_train = BigQueryHandler(query_1, prj_id)
+    lvts_parsed_train_df = lvts_prased_train.get_dataframe()
+
+    print(lvts_parsed_train_df.head())
+
+    query_2 = "SELECT * FROM\
+            acs-research-prj.deeplearning.payment_transaction_validate_y\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS"
+
+    lvts_prased_validate = BigQueryHandler(query_2, prj_id)
+    lvts_parsed_validate_df = lvts_prased_validate.get_dataframe()
+
+    print(lvts_parsed_validate_df.head())
+
+    # Prepare matrix
+    mp_train = MemoryPreparer(window = False, batch_size = BATCH_SIZE,\
+                            window_size = WINDOW_SIZE)
+    lvts_train_gen = mp_train.prepare(lvts_parsed_train_df)
+    mp_val = MemoryPreparer(window = False, batch_size = BATCH_SIZE,\
+                            window_size = WINDOW_SIZE)
+    lvts_val_gen = mp_val.prepare(lvts_parsed_validate_df)
+
+    print("here1")
+    print(type(lvts_train_gen))
+    print(lvts_train_gen.shape)
+    print(type(lvts_val_gen))
+    print(lvts_val_gen.shape)
+    
+    #Make model
+    inp_shape = (lvts_train_gen.shape[1])
+    model = make_autoencoder(input_shape = inp_shape,\
+                            hidden_layer_size = HIDDEN_LAYER_SIZE)
+    model.compile(optimizer="adam",loss='mse')
+
+    #Fit model
+    history = model.fit(lvts_train_gen, lvts_train_gen,\
+                        validation_data = (lvts_val_gen, lvts_val_gen),\
+                        epochs = EPOCHS,\
+                        batch_size = 100)
+
+    # # history = model.fit(lvts_train_gen,\
+    #                     validation_data = lvts_val_gen,\
+    #                     epochs=EPOCHS
+    #                     )
+
+
+    hist_df = pd.DataFrame(history.history)
+
+
+    # save
+    hist_df.to_csv(("autoencoder_results.csv"),\
+                    mode="a", header=False)
+
+    model.save("autoencoder")
