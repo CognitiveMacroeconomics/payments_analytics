@@ -109,10 +109,11 @@ class MemoryPreparer(data_utils.Sequence):
         self.feature_nr = df_clean[0].shape[0]
         
         _batch = self.make_windowed_array(self.x)
-        print("Printing batch")
-        print(_batch)
+        #print("Printing batch")
+        #print(_batch)
+        print("feature nr is:{}".format(self.feature_nr))
         return _batch
-        #print(self.x)
-        #print(self.feature_nr)
+        
+        
         
         

@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     query_1 = "SELECT * FROM\
             acs-research-prj.deeplearning.payment_transaction_train_y\
-                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS"
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS LIMIT 1000"
 
     
     prj_id = "acs-research-prj"
@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     query_2 = "SELECT * FROM\
             acs-research-prj.deeplearning.payment_transaction_validate_y\
-                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS"
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS LIMIT 500"
 
     lvts_prased_validate = BigQueryHandler(query_2, prj_id)
     lvts_parsed_validate_df = lvts_prased_validate.get_dataframe()
@@ -59,29 +59,29 @@ if __name__ == "__main__":
     print(type(lvts_val_gen))
     print(lvts_val_gen.shape)
     
-    #Make model
-    inp_shape = (lvts_train_gen.shape[1])
-    model = make_autoencoder(input_shape = inp_shape,\
-                            hidden_layer_size = HIDDEN_LAYER_SIZE)
-    model.compile(optimizer="adam",loss='mse')
+    # #Make model
+    # inp_shape = (lvts_train_gen.shape[1])
+    # model = make_autoencoder(input_shape = inp_shape,\
+    #                         hidden_layer_size = HIDDEN_LAYER_SIZE)
+    # model.compile(optimizer="adam",loss='mse')
 
-    #Fit model
-    history = model.fit(lvts_train_gen, lvts_train_gen,\
-                        validation_data = (lvts_val_gen, lvts_val_gen),\
-                        epochs = EPOCHS,\
-                        batch_size = 100)
+    # #Fit model
+    # history = model.fit(lvts_train_gen, lvts_train_gen,\
+    #                     validation_data = (lvts_val_gen, lvts_val_gen),\
+    #                     epochs = EPOCHS,\
+    #                     batch_size = 100)
 
-    # # history = model.fit(lvts_train_gen,\
-    #                     validation_data = lvts_val_gen,\
-    #                     epochs=EPOCHS
-    #                     )
-
-
-    hist_df = pd.DataFrame(history.history)
+    # # # history = model.fit(lvts_train_gen,\
+    # #                     validation_data = lvts_val_gen,\
+    # #                     epochs=EPOCHS
+    # #                     )
 
 
-    # save
-    hist_df.to_csv(("autoencoder_results.csv"),\
-                    mode="a", header=False)
+    # hist_df = pd.DataFrame(history.history)
 
-    model.save("autoencoder")
+
+    # # save
+    # hist_df.to_csv(("autoencoder_results.csv"),\
+    #                 mode="a", header=False)
+
+    # model.save("autoencoder")

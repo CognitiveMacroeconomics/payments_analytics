@@ -1,58 +1,79 @@
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-# -*- coding: utf-8 -*-
-import dataiku
-import pandas as pd, numpy as np
-import matplotlib.pyplot as plt
+from pandas.io import gbq
+import google.auth
+import os
+import pandas as pd
+import numpy as np
 import seaborn as sns
-from dataiku import pandasutils as pdu
-from target2_analytics.data.dataiku_parser import IkuParser
-from target2_analytics.models.lstm import make_lstm
-from tensorflow.keras.models import load_model
-from tensorflow.keras import Model
-from sklearn.manifold import TSNE
-from sklearn.decomposition import PCA
-from target2_analytics.data.windows import MemoryPreparer
+from data import MemoryPreparer
+from models.lstm import make_lstm
+
 
 #global params
-WINDOW_SIZE = 10
+WINDOW_SIZE = 50
 HIDDEN_LAYER_SIZE = 16
-EPOCHS = 100
-BATCH_SIZE = 100
+EPOCHS = 500
+BATCH_SIZE = 2000
 
+class BigQueryHandler:
 
-# Read recipe inputs
-t2_parsed_train = dataiku.Dataset("t2_anon_sql_train_1y")
-t2_parsed_train_df = t2_parsed_train.get_dataframe()
-t2_parsed_validate = dataiku.Dataset("t2_anon_sql_validate_1y")
-t2_parsed_validate_df = t2_parsed_validate.get_dataframe()
+    def __init__(self,query, prj_id):
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-mp = MemoryPreparer(window_size = WINDOW_SIZE)
-t2_windowed_val_array = mp.prepare(t2_parsed_validate_df)
-t2_windowed_train_array = mp.prepare(t2_parsed_train)
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-#Make model
-inp_shape = t2_parsed_train_df.iloc[0].shape
-model = make_lstm(input_shape=inp_shape, hidden_layer_size=HIDDEN_LAYER_SIZE)
-model.compile(optimizer="adam", loss="mse")
-print(model.summary())
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = 'data.credentials.json'
+        self.data_df = gbq.read_gbq(query, project_id=prj_id)
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-#Fit model
-history = model.fit(t2_windowed_train_array, t2_windowed_train_array ,
-             validation_data=(t2_windowed_train_array, t2_windowed_train_array),
-             epochs=EPOCHS,
-             batch_size=BATCH_SIZE)
-# NB: DSS supports several kinds of APIs for reading and writin+g data. Please see doc.
+    def get_dataframe(self):
+        return self.data_df
 
-hist_df = pd.DataFrame(history.history)
+if __name__ == "__main__":
 
-# Write recipe outputs
-model_dir = dataiku.Folder("1y_lstm").get_info()["path"]
-hist_df.to_csv("{}/{}".format(model_dir, "lstm_results.csv"))
-model.save("{}/{}".format(model_dir, "lstm"))
+    query_1 = "SELECT * FROM\
+            acs-research-prj.deeplearning.payment_transaction_train_y\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS"
 
-# -------------------------------------------------------------------------------- NOTEBOOK-CELL: CODE
-fig = hist_df.plot().get_figure()
-fig.savefig("{}/{}".format(model_dir, "lstm.jpg"))
+    
+    prj_id = "acs-research-prj"
+    lvts_prased_train = BigQueryHandler(query_1, prj_id)
+    lvts_parsed_train_df = lvts_prased_train.get_dataframe()
+
+    print(lvts_parsed_train_df.head())
+
+    query_2 = "SELECT * FROM\
+            acs-research-prj.deeplearning.payment_transaction_validate_y\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS"
+
+    lvts_prased_validate = BigQueryHandler(query_2, prj_id)
+    lvts_parsed_validate_df = lvts_prased_validate.get_dataframe()
+
+    print(lvts_parsed_validate_df.head())
+
+    mp_train = MemoryPreparer(window = True, batch_size = BATCH_SIZE,\
+                            window_size = WINDOW_SIZE)
+    lvts_windowed_train_gen = mp_train.prepare(lvts_parsed_train_df)
+    mp_val = MemoryPreparer(window = True, batch_size = BATCH_SIZE,\
+                            window_size = WINDOW_SIZE)
+    lvts_windowed_val_gen = mp_val.prepare(lvts_parsed_validate_df)
+
+    print("here1")
+    print(type(lvts_windowed_train_gen))
+    print(lvts_windowed_train_gen.shape)
+    print(type(lvts_windowed_val_gen))
+    print(lvts_windowed_val_gen.shape)
+
+    #Make model
+    inp_shape = (WINDOW_SIZE ,lvts_windowed_train_gen.shape[2])
+    model = make_lstm(input_shape = inp_shape, hidden_layer_size=HIDDEN_LAYER_SIZE)
+    model.compile(optimizer="adam",loss='mse')
+
+    #Fit model
+    history = model.fit(lvts_windowed_train_gen, lvts_windowed_train_gen,\
+                         validation_data = (lvts_windowed_val_gen, lvts_windowed_val_gen),\
+                         epochs = EPOCHS,\
+                         batch_size = 100)
+
+    hist_df = pd.DataFrame(history.history)
+
+    # save
+    hist_df.to_csv(("lstm_results.csv"),\
+                     mode="a", header=False)
+
+    model.save("lstm")
