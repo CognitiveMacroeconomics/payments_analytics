@@ -10,7 +10,7 @@ from models.autoencoder import make_autoencoder
 WINDOW_SIZE = 50
 HIDDEN_LAYER_SIZE = 16
 EPOCHS = 100
-BATCH_SIZE = 2000
+BATCH_SIZE = 20
 
 class BigQueryHandler:
 
@@ -53,35 +53,43 @@ if __name__ == "__main__":
                             window_size = WINDOW_SIZE)
     lvts_val_gen = mp_val.prepare(lvts_parsed_validate_df)
 
-    print("here1")
-    print(type(lvts_train_gen))
-    print(lvts_train_gen.shape)
-    print(type(lvts_val_gen))
-    print(lvts_val_gen.shape)
+    # print("here1")
+    # print(type(lvts_train_gen))
+    # print("Shape of lvts_train_gen is:{}".format(lvts_train_gen.shape))
+    # print(type(lvts_val_gen))
+    # print("Shape of lvts_val_gen is:{}".format(lvts_val_gen.shape))
     
     # #Make model
-    # inp_shape = (lvts_train_gen.shape[1])
-    # model = make_autoencoder(input_shape = inp_shape,\
-    #                         hidden_layer_size = HIDDEN_LAYER_SIZE)
-    # model.compile(optimizer="adam",loss='mse')
 
-    # #Fit model
-    # history = model.fit(lvts_train_gen, lvts_train_gen,\
-    #                     validation_data = (lvts_val_gen, lvts_val_gen),\
-    #                     epochs = EPOCHS,\
-    #                     batch_size = 100)
+    # #Previously this was throwing an error
+    # #inp_shape = (1, lvts_train_gen.shape[1])
+    
+    inp_shape = (lvts_train_gen.shape[1])
 
-    # # # history = model.fit(lvts_train_gen,\
-    # #                     validation_data = lvts_val_gen,\
-    # #                     epochs=EPOCHS
-    # #                     )
+    model = make_autoencoder(input_shape = inp_shape,\
+                             hidden_layer_size = HIDDEN_LAYER_SIZE)
+    model.compile(optimizer="adam",loss='mse')
+
+    #Fit model
+    history = model.fit(lvts_train_gen, lvts_train_gen,\
+                         validation_data = (lvts_val_gen, lvts_val_gen),\
+                         epochs = EPOCHS, batch_size = 100)
+
+    # Not using the generator version
+    #history = model.fit(lvts_train_gen,\
+    #                     validation_data = lvts_val_gen,\
+    #                     epochs=EPOCHS
+    #                     )
 
 
-    # hist_df = pd.DataFrame(history.history)
+    hist_df = pd.DataFrame(history.history)
 
 
-    # # save
-    # hist_df.to_csv(("autoencoder_results.csv"),\
-    #                 mode="a", header=False)
+    # save
+    hist_df.to_csv(("autoencoder_results.csv"),\
+                     mode="a", header=False)
 
-    # model.save("autoencoder")
+    model.save("autoencoder")
+
+    #model = keras.models.load_model(...)
+    #model.predict(input_data)

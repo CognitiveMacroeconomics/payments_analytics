@@ -23,6 +23,7 @@ def make_autoencoder(input_shape, activation = "relu", hidden_layer_size = 16):
     inp_layer = Input(shape=input_shape)
     hidden_layer = Dense(hidden_layer_size, activation = activation)(inp_layer)
     output_layer = Dense(input_shape, activation = activation)(hidden_layer)
+    #output_layer = Dense(input_shape[1], activation = activation)(hidden_layer)
     model = Model(inputs=inp_layer, outputs=output_layer, name="simple_autoencoder")
     return model
 

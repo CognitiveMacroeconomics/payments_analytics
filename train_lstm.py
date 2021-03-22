@@ -9,8 +9,8 @@ from models.lstm import make_lstm
 
 
 #global params
-WINDOW_SIZE = 50
-HIDDEN_LAYER_SIZE = 16
+WINDOW_SIZE = 5
+HIDDEN_LAYER_SIZE = 32
 EPOCHS = 500
 BATCH_SIZE = 2000
 
@@ -30,6 +30,7 @@ if __name__ == "__main__":
             acs-research-prj.deeplearning.payment_transaction_train_y\
                 order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS"
 
+    
     
     prj_id = "acs-research-prj"
     lvts_prased_train = BigQueryHandler(query_1, prj_id)
@@ -61,14 +62,14 @@ if __name__ == "__main__":
 
     #Make model
     inp_shape = (WINDOW_SIZE ,lvts_windowed_train_gen.shape[2])
-    model = make_lstm(input_shape = inp_shape, hidden_layer_size=HIDDEN_LAYER_SIZE)
+    model = make_lstm(input_shape = inp_shape,\
+                    hidden_layer_size=HIDDEN_LAYER_SIZE)
     model.compile(optimizer="adam",loss='mse')
 
     #Fit model
     history = model.fit(lvts_windowed_train_gen, lvts_windowed_train_gen,\
-                         validation_data = (lvts_windowed_val_gen, lvts_windowed_val_gen),\
-                         epochs = EPOCHS,\
-                         batch_size = 100)
+            validation_data = (lvts_windowed_val_gen, lvts_windowed_val_gen),\
+            epochs = EPOCHS, batch_size = 100)
 
     hist_df = pd.DataFrame(history.history)
 
