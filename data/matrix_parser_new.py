@@ -6,7 +6,7 @@ import time
 
 class MatrixParser:
 
-    def __init__(self, payment_mapping={"MT205":0,"MT103":1}, bank_list=['ATBRCA','BLCMCA','BNDCCA']):
+    def __init__(self, payment_mapping = {"MT" : 0} ,bank_list=['ATBRCA','BLCMCA','BNDCCA']):
 
         self.payment_mapping = payment_mapping
         self.bank_mapping = self.__get_bank_mapping_from_list(bank_list)
