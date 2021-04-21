@@ -83,8 +83,7 @@ if __name__ == "__main__":
 
     #test = BigQueryHandler('credentials.json')
 
-    query = "SELECT trans_time, payment_amt, part_id_from, part_id_to,\
-            swift_msg_id FROM\
+    query = "SELECT trans_time, payment_amt, part_id_from, part_id_to FROM\
             acs-research-prj.deeplearning.payment_mt_reduced order by trans_time"
 
     
