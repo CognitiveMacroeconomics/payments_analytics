@@ -20,7 +20,7 @@ class BigQueryHandler:
 def parse_chunk(chunk, parser_agg):
 
     return pd.DataFrame(parser_agg.parse(chunk.to_dict("records"),\
-                        aggregation=True, aggregation_time=3600),\
+                        aggregation=True, aggregation_time=900),\
                             columns=parser_agg.get_column_names())
     
 
@@ -83,8 +83,9 @@ if __name__ == "__main__":
 
     #test = BigQueryHandler('credentials.json')
 
-    query = "SELECT trans_time, payment_amt, part_id_from, part_id_to FROM\
-            acs-research-prj.deeplearning.payments_boc_mt order by trans_time"
+    query = "SELECT trans_time, payment_amt, part_id_from, part_id_to,\
+            swift_msg_id FROM\
+            acs-research-prj.deeplearning.payment_mt_reduced order by trans_time"
 
     
     prj_id = "acs-research-prj"
@@ -97,15 +98,16 @@ if __name__ == "__main__":
                         'part_id_from': 'sender_bank',\
                         'part_id_to': 'receiver_bank'}, inplace=True)
 
-
-    
     df['payment_type'] = 'MT'
 
-    print(df)
+    print(df)                        
 
-    bank_list = ['BCANCA','ATBRCA','BLCMCA','BNDCCA','BNPACA','BOFACA',\
-                 'BOFMCA','CCDQCA','CIBCCA','CUCXCA','HKBCCA','ICICCA',\
-                 'MCBTCA','NOSCCA','ROYCCA','SBOSCA','TDOMCA']
+    bank_list = ['BOFACA', 'NOSCCA', 'ROYCCA', 'SBOSCA', 'TDOMCA', 'BOFMCA',\
+                    'CIBCCA', 'CUCXCA']
+
+    #bank_list = ['ATBRCA','BLCMCA','BNDCCA','BNPACA','BOFACA',\
+    #             'BOFMCA','CCDQCA','CIBCCA','CUCXCA','HKBCCA','ICICCA',\
+    #             'MCBTCA','NOSCCA','ROYCCA','SBOSCA','TDOMCA']
 
     
 
@@ -165,13 +167,13 @@ if __name__ == "__main__":
 
     #print(df.iloc[train_ids])
 
-    parser_write_subset(df.iloc[train_ids],"set4","train", scaler, parser_ss,\
+    parser_write_subset(df.iloc[train_ids],"set6","train", scaler, parser_ss,\
                          parser_agg, nr_chunks = NR_CHUNKS)
     
-    parser_write_subset(df.iloc[val_ids], "set4", "validate", scaler,\
+    parser_write_subset(df.iloc[val_ids], "set6", "validate", scaler,\
                             parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
 
-    parser_write_subset(df.iloc[test_ids], "set4", "test", scaler,\
+    parser_write_subset(df.iloc[test_ids], "set6", "test", scaler,\
                             parser_ss, parser_agg, nr_chunks = NR_CHUNKS)
 
 
