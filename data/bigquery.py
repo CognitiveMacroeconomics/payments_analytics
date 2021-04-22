@@ -2,8 +2,8 @@ import pandas as pd
 from pandas.io import gbq
 import google.auth
 import os
-import matrix_parser_new
-import split_scale_parser_new
+import data.matrix_parser_new
+import data.split_scale_parser_new
 import numpy as np
 
 

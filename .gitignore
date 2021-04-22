@@ -17,3 +17,7 @@ __pycache__/
 credentials.json
 bank_list.txt
 bank_list_test.txt
+
+lstm_autoencoder_exp11/
+model_results/
+
