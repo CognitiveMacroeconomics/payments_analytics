@@ -19,5 +19,8 @@ bank_list.txt
 bank_list_test.txt
 
 lstm_autoencoder_exp11/
+lstm_autoencoder_exp12/
+lstm_autoencoder_exp13/
+lstm_autoencoder_exp14/
 model_results/
 

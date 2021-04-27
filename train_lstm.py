@@ -9,9 +9,9 @@ from models.lstm import make_lstm
 
 
 #global params
-WINDOW_SIZE = 3
+WINDOW_SIZE = 5
 HIDDEN_LAYER_SIZE = 32
-EPOCHS = 20
+EPOCHS = 500
 BATCH_SIZE = 200
 
 class BigQueryHandler:
@@ -27,8 +27,8 @@ class BigQueryHandler:
 if __name__ == "__main__":
 
     query_1 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_train_set5\
-                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES LIMIT 5000"
+            acs-research-prj.deeplearning.payment_transaction_train_set6\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     
     
@@ -39,8 +39,8 @@ if __name__ == "__main__":
     print(lvts_parsed_train_df.head())
 
     query_2 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_validate_set5\
-                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES LIMIT 5000"
+            acs-research-prj.deeplearning.payment_transaction_validate_set6\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     lvts_prased_validate = BigQueryHandler(query_2, prj_id)
     lvts_parsed_validate_df = lvts_prased_validate.get_dataframe()
@@ -54,11 +54,11 @@ if __name__ == "__main__":
                             window_size = WINDOW_SIZE)
     lvts_windowed_val_gen = mp_val.prepare(lvts_parsed_validate_df)
 
-    print("here1")
-    print(type(lvts_windowed_train_gen))
-    print(lvts_windowed_train_gen.shape)
-    print(type(lvts_windowed_val_gen))
-    print(lvts_windowed_val_gen.shape)
+    #print("here1")
+    #print(type(lvts_windowed_train_gen))
+    #print(lvts_windowed_train_gen.shape)
+    #print(type(lvts_windowed_val_gen))
+    #print(lvts_windowed_val_gen.shape)
 
    #Make model
     inp_shape = (WINDOW_SIZE ,lvts_windowed_train_gen.shape[2])
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     hist_df = pd.DataFrame(history.history)
 
     # save
-    hist_df.to_csv(("model_results\\lstm_autoencoder_results_exp11.csv"),\
+    hist_df.to_csv(("model_results\\lstm_autoencoder_results_exp14.csv"),\
                      mode="a", header=False)
 
-    model.save("lstm_autoencoder_exp11") 
+    model.save("lstm_autoencoder_exp14") 
