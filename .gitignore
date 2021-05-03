@@ -18,6 +18,8 @@ credentials.json
 bank_list.txt
 bank_list_test.txt
 
+lstm_autoencoder_exp3/
+lstm_autoencoder_exp4/
 lstm_autoencoder_exp11/
 lstm_autoencoder_exp12/
 lstm_autoencoder_exp13/

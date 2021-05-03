@@ -27,7 +27,7 @@ class BigQueryHandler:
 if __name__ == "__main__":
 
     query_1 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_train_set6\
+            acs-research-prj.deeplearning.payment_transaction_train_set1\
                 order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     print(lvts_parsed_train_df.head())
 
     query_2 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_validate_set6\
+            acs-research-prj.deeplearning.payment_transaction_validate_set1\
                 order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     lvts_prased_validate = BigQueryHandler(query_2, prj_id)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     hist_df = pd.DataFrame(history.history)
 
     # save
-    hist_df.to_csv(("model_results\\lstm_autoencoder_results_exp14.csv"),\
+    hist_df.to_csv(("model_results\\lstm_autoencoder_results_exp4.csv"),\
                      mode="a", header=False)
 
-    model.save("lstm_autoencoder_exp14") 
+    model.save("lstm_autoencoder_exp4") 
