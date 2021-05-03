@@ -66,3 +66,25 @@ evaluate_model = model.evaluate(lvts_windowed_test_gen,lvts_windowed_test_gen)
 test_prediction = model.predict(lvts_windowed_test_gen)
 
 print(test_prediction)
+
+f = open(".\prediction_analysis\prediciton_results_exp3.txt",'w')
+
+
+for i in range(lvts_windowed_test_gen.shape[0]):
+    f.write("Input:\n")
+    for j in lvts_windowed_test_gen[i]:
+        for k in j:
+            f.write(str(k)+" ")
+        f.write("\n")
+    f.write("\n")
+
+    f.write("Prediction:\n")
+    for a in test_prediction[i]:
+        for b in a:
+            f.write(str(b)+" ")
+        f.write("\n")
+    f.write("\n")
+
+    print(i)
+
+f.close()
