@@ -69,7 +69,7 @@ if __name__ == "__main__":
     #Fit model
     history = model.fit(lvts_windowed_train_gen, lvts_windowed_train_gen,\
             validation_data = (lvts_windowed_val_gen, lvts_windowed_val_gen),\
-            epochs = EPOCHS, batch_size = 100)
+            epochs = EPOCHS, batch_size = BATCH_SIZE)
 
     hist_df = pd.DataFrame(history.history)
 

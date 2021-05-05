@@ -9,6 +9,9 @@ from data import MemoryPreparer
 from models.lstm import make_lstm
 
 from tensorflow.keras.models import load_model
+from keras.models import Model
+from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 
 # losses_data = pd.read_csv("model_results\\lstm_autoencoder_results_exp11.csv",
 #                     header=None,index_col=0, names=["loss","val_loss"] )
@@ -41,8 +44,8 @@ class BigQueryHandler:
 
 
 query_1 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_test_set1\
-            order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES LIMIT 2000"
+            acs-research-prj.deeplearning.payment_transaction_test_set5\
+            order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
         
 prj_id = "acs-research-prj"
@@ -51,40 +54,92 @@ lvts_parsed_test_df = lvts_prased_test.get_dataframe()
 
 print(lvts_parsed_test_df.head())
 
-mp_test = MemoryPreparer(window = True, batch_size = BATCH_SIZE,\
-                            window_size = WINDOW_SIZE)
-lvts_windowed_test_gen = mp_test.prepare(lvts_parsed_test_df)
+# mp_test = MemoryPreparer(window = True, batch_size = BATCH_SIZE,\
+#                             window_size = WINDOW_SIZE)
+# lvts_windowed_test_gen = mp_test.prepare(lvts_parsed_test_df)
 
 #print(lvts_windowed_test_gen)
 
-model = load_model('lstm_autoencoder_exp3')
+model = load_model('lstm_autoencoder_exp11')
 
 print("Model loaded")
 
-evaluate_model = model.evaluate(lvts_windowed_test_gen,lvts_windowed_test_gen)
-
-test_prediction = model.predict(lvts_windowed_test_gen)
-
-print(test_prediction)
-
-f = open(".\prediction_analysis\prediciton_results_exp3.txt",'w')
 
 
-for i in range(lvts_windowed_test_gen.shape[0]):
-    f.write("Input:\n")
-    for j in lvts_windowed_test_gen[i]:
-        for k in j:
-            f.write(str(k)+" ")
-        f.write("\n")
-    f.write("\n")
+#############################################################################
 
-    f.write("Prediction:\n")
-    for a in test_prediction[i]:
-        for b in a:
-            f.write(str(b)+" ")
-        f.write("\n")
-    f.write("\n")
+# evaluate_model = model.evaluate(lvts_windowed_test_gen,lvts_windowed_test_gen)
 
-    print(i)
+# test_prediction = model.predict(lvts_windowed_test_gen)
 
-f.close()
+# print(test_prediction)
+
+# f = open(".\prediction_analysis\prediciton_results_exp11.txt",'w')
+
+
+# for i in range(lvts_windowed_test_gen.shape[0]):
+#     f.write("Input:\n")
+#     for j in lvts_windowed_test_gen[i]:
+#         for k in j:
+#             f.write(str(k)+" ")
+#         f.write("\n")
+#     f.write("\n")
+
+#     f.write("Prediction:\n")
+#     for a in test_prediction[i]:
+#         for b in a:
+#             f.write(str(b)+" ")
+#         f.write("\n")
+#     f.write("\n")
+
+#     print(i)
+
+# f.close()
+
+###############################################################################
+
+
+
+print("="*20, "Original Model", "="*20)
+print(model.summary())
+
+encoding_model = Model(inputs=[model.get_layer("input_1").input],\
+                    outputs=[model.get_layer("lstm").output])
+
+print("="*20, "Encoder", "="*20)
+print(encoding_model.summary())
+
+mp_test = MemoryPreparer(window = True, window_size = WINDOW_SIZE)
+lvts_windowed_test_gen = mp_test.prepare(lvts_parsed_test_df)
+
+print("Shape of lvts_windowed_test_gen")
+print(lvts_windowed_test_gen.shape)
+first = lvts_windowed_test_gen[0]
+days = [np.mean(x[:,3]) for x in lvts_windowed_test_gen[:]]
+
+# for x in lvts_windowed_test_gen[:]:
+#     print("Here x")
+#     print(x.shape)
+#     print(x[:,2])
+
+
+#print(days)
+print("Shape of days")
+print(len(days))
+
+encoded_test_records = encoding_model.predict(lvts_windowed_test_gen)
+print("test shape: {}".format(encoded_test_records.shape))
+dim_reduced_test_records = TSNE().fit_transform(encoded_test_records)
+print("TSNE SHAPE: {}".format(dim_reduced_test_records.shape))
+
+dim_reduced_test_df = pd.DataFrame(dim_reduced_test_records)
+dim_reduced_test_df["label"] = days
+
+# print(dim_reduced_test_df)
+
+fig = sns.pairplot(x_vars=[0], y_vars=[1], data=dim_reduced_test_df, hue="label")
+fig._legend.remove()
+fig.fig.suptitle('TSNE reduced latent space')
+fig.fig.legend(ncol=2, title="day")
+
+plt.show()
