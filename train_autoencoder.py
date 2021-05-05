@@ -10,7 +10,7 @@ from models.autoencoder import make_autoencoder
 WINDOW_SIZE = 50
 HIDDEN_LAYER_SIZE = 16
 EPOCHS = 100
-BATCH_SIZE = 20
+BATCH_SIZE = 200
 
 class BigQueryHandler:
 
@@ -26,8 +26,8 @@ class BigQueryHandler:
 if __name__ == "__main__":
 
     query_1 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_train_y\
-                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS LIMIT 1000"
+            acs-research-prj.deeplearning.payment_transaction_train_set1\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     
     prj_id = "acs-research-prj"
@@ -37,8 +37,8 @@ if __name__ == "__main__":
     print(lvts_parsed_train_df.head())
 
     query_2 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_validate_y\
-                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS LIMIT 500"
+            acs-research-prj.deeplearning.payment_transaction_validate_set1\
+                order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     lvts_prased_validate = BigQueryHandler(query_2, prj_id)
     lvts_parsed_validate_df = lvts_prased_validate.get_dataframe()
@@ -61,8 +61,6 @@ if __name__ == "__main__":
     
     # #Make model
 
-    # #Previously this was throwing an error
-    # #inp_shape = (1, lvts_train_gen.shape[1])
     
     inp_shape = (lvts_train_gen.shape[1])
 
@@ -73,7 +71,7 @@ if __name__ == "__main__":
     #Fit model
     history = model.fit(lvts_train_gen, lvts_train_gen,\
                          validation_data = (lvts_val_gen, lvts_val_gen),\
-                         epochs = EPOCHS, batch_size = 100)
+                         epochs = EPOCHS, batch_size = BATCH_SIZE)
 
     # Not using the generator version
     #history = model.fit(lvts_train_gen,\
@@ -86,10 +84,8 @@ if __name__ == "__main__":
 
 
     # save
-    hist_df.to_csv(("autoencoder_results.csv"),\
+    hist_df.to_csv(("model_results\\autoencoder_results_exp1.csv"),\
                      mode="a", header=False)
 
-    model.save("autoencoder")
+    model.save("autoencoder_exp1") 
 
-    #model = keras.models.load_model(...)
-    #model.predict(input_data)
