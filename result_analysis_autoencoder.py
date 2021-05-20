@@ -60,7 +60,7 @@ print(lvts_parsed_test_df.head())
 
 #print(lvts_windowed_test_gen)
 
-model = load_model('lstm_autoencoder_exp11')
+model = load_model('autoencoder_exp15')
 
 print("Model loaded")
 
@@ -104,19 +104,19 @@ print("="*20, "Original Model", "="*20)
 print(model.summary())
 
 encoding_model = Model(inputs=[model.get_layer("input_1").input],\
-                    outputs=[model.get_layer("lstm").output])
+                        outputs=[model.get_layer("dense").output])
 
 print("="*20, "Encoder", "="*20)
 print(encoding_model.summary())
 
-mp_test = MemoryPreparer(window = True, batch_size = BATCH_SIZE,\
-                        window_size = WINDOW_SIZE)
+mp_test = MemoryPreparer(window = False, window_size = WINDOW_SIZE)
 lvts_windowed_test_gen = mp_test.prepare(lvts_parsed_test_df)
 
 print("Shape of lvts_windowed_test_gen")
 print(lvts_windowed_test_gen.shape)
 first = lvts_windowed_test_gen[0]
-days = [np.mean(x[:,3]) for x in lvts_windowed_test_gen[:]]
+#days = lvts_windowed_test_gen[:,3]*31
+year = lvts_windowed_test_gen[:,3]*20+2010
 
 # for x in lvts_windowed_test_gen[:]:
 #     print("Here x")
@@ -124,9 +124,9 @@ days = [np.mean(x[:,3]) for x in lvts_windowed_test_gen[:]]
 #     print(x[:,2])
 
 
-#print(days)
-print("Shape of days")
-print(len(days))
+print(year)
+print("Shape of year")
+print(len(year))
 
 encoded_test_records = encoding_model.predict(lvts_windowed_test_gen)
 print("test shape: {}".format(encoded_test_records.shape))
@@ -134,13 +134,22 @@ dim_reduced_test_records = TSNE().fit_transform(encoded_test_records)
 print("TSNE SHAPE: {}".format(dim_reduced_test_records.shape))
 
 dim_reduced_test_df = pd.DataFrame(dim_reduced_test_records)
-dim_reduced_test_df["label"] = days
+dim_reduced_test_df["label"] = year.round(decimals=0)
 
 # print(dim_reduced_test_df)
 
-fig = sns.pairplot(x_vars=[0], y_vars=[1], data=dim_reduced_test_df, hue="label")
+##sns.set_palette(sns.color_palette("PRGn", 31))
+fig = sns.pairplot(x_vars=[0], y_vars=[1], data=dim_reduced_test_df, hue="label",palette=sns.color_palette("Spectral", 5))
 fig._legend.remove()
 fig.fig.suptitle('TSNE reduced latent space')
-fig.fig.legend(ncol=2, title="day")
+fig.fig.legend(ncol=2, title="year")
+
+# del lvts_parsed_test_df['SENDER_BANK']
+# del lvts_parsed_test_df['RECEIVER_BANK']
+# lvts_parsed_test_df = lvts_parsed_test_df[["YEAR", "MONTH", "WEEKNUMBER", "DAY", "HOURS", "MINUTES"]]
+# tsne = TSNE()
+# tsne_reduced = pd.DataFrame(tsne.fit_transform(lvts_parsed_test_df))
+# tsne_reduced['label'] =  lvts_parsed_test_df["MONTH"]*12
+# tsne_fig = sns.pairplot(x_vars=[0], y_vars=[1], data=tsne_reduced, hue='label')
 
 plt.show()

@@ -9,7 +9,7 @@ from models.autoencoder import make_autoencoder
 # global params (adapt to what you need, start with low window size!)
 WINDOW_SIZE = 50
 HIDDEN_LAYER_SIZE = 16
-EPOCHS = 100
+EPOCHS = 500
 BATCH_SIZE = 200
 
 class BigQueryHandler:
@@ -26,7 +26,7 @@ class BigQueryHandler:
 if __name__ == "__main__":
 
     query_1 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_train_set1\
+            acs-research-prj.deeplearning.payment_transaction_train_set5\
                 order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     print(lvts_parsed_train_df.head())
 
     query_2 = "SELECT * FROM\
-            acs-research-prj.deeplearning.payment_transaction_validate_set1\
+            acs-research-prj.deeplearning.payment_transaction_validate_set5\
                 order by YEAR, MONTH, WEEKNUMBER, DAY, HOURS, MINUTES"
 
     lvts_prased_validate = BigQueryHandler(query_2, prj_id)
@@ -84,8 +84,8 @@ if __name__ == "__main__":
 
 
     # save
-    hist_df.to_csv(("model_results\\autoencoder_results_exp1.csv"),\
+    hist_df.to_csv(("model_results\\autoencoder_results_exp15.csv"),\
                      mode="a", header=False)
 
-    model.save("autoencoder_exp1") 
+    model.save("autoencoder_exp15") 
 
